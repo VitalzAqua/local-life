@@ -235,8 +235,12 @@ textarea:focus {
   color: #17a2b8;
 }
 
-/* Responsive Design */
+/* Mobile Responsive Design */
 @media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+
   .auth-header {
     padding: 1.5rem 1rem;
   }
@@ -246,24 +250,131 @@ textarea:focus {
   }
   
   .auth-main {
-    padding: 1rem;
+    padding: 1.5rem 1rem;
   }
   
   .modal-content {
     padding: 1.5rem;
-    margin: 0.5rem;
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
     border-radius: 0.5rem;
+  }
+
+  .loading-container {
+    padding: 2rem 1rem;
+  }
+
+  .loading-container p {
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  .auth-header {
+    padding: 1rem 0.75rem;
+  }
+  
   .auth-header h1 {
     font-size: 1.75rem;
   }
   
+  .auth-main {
+    padding: 1rem 0.75rem;
+  }
+  
   .modal-content {
     padding: 1rem;
-    margin: 0.25rem;
+    margin: 0.5rem;
+    max-height: 95vh;
+    max-width: calc(100vw - 1rem);
+  }
+
+  .loading-spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .loading-container p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Tablet Landscape */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+  .auth-container {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .auth-header {
+    flex: 0 0 40%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-main {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+/* Large Screens */
+@media (min-width: 1200px) {
+  .modal-content {
+    max-width: 600px;
+    padding: 3rem;
+  }
+
+  .auth-header h1 {
+    font-size: 3rem;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .modal-content {
+    padding: 2rem;
+  }
+}
+
+/* Landscape Phone Optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .auth-container {
+    min-height: 100vh;
+    padding: 1rem 0;
+  }
+
+  .auth-header {
+    padding: 1rem;
+  }
+
+  .auth-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .auth-main {
+    padding: 1rem;
+  }
+
+  .loading-container {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
   }
 }
 
