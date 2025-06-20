@@ -82,6 +82,13 @@
   align-items: center;
 }
 
+.categoryCheckboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .categoryLabel {
   font-weight: 600;
   color: #495057;
@@ -228,7 +235,7 @@
   }
 
   .categoryCheckboxes {
-    display: grid;
+    display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: 0.25rem;
     width: 100%;
@@ -280,6 +287,7 @@
   }
 
   .categoryCheckboxes {
+    display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
     gap: 0.25rem;
     padding: 0 0.25rem;
