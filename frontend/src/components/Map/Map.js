@@ -128,26 +128,28 @@ const Map = ({ userLocation, onStoreSelect }) => {
 
         <div className={styles.categoryFilters}>
           <span className={styles.categoryLabel}>Categories:</span>
-          {availableCategories.map(category => {
-            const IconComponent = CategoryIcons[category.toLowerCase()] || CategoryIcons.default;
-            const iconColor = CategoryColors[category.toLowerCase()] || CategoryColors.default;
-            
-            return (
+          <div className={styles.categoryCheckboxes}>
+            {availableCategories.map(category => {
+              const IconComponent = CategoryIcons[category.toLowerCase()] || CategoryIcons.default;
+              const iconColor = CategoryColors[category.toLowerCase()] || CategoryColors.default;
+              
+              return (
               <label key={category} className={styles.categoryCheckbox}>
                 <input
                   type="checkbox"
                   checked={selectedCategories.includes(category)}
                   onChange={() => handleCategoryChange(category)}
                 />
-                <IconComponent 
-                  size={16} 
-                  color={iconColor} 
-                  style={{ marginRight: '4px' }}
-                />
+                  <IconComponent 
+                    size={16} 
+                    color={iconColor} 
+                    style={{ marginRight: '4px' }}
+                  />
                 <span>{category}</span>
               </label>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
