@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import apiService from '../services/apiService';
 import { storeUserSession } from '../utils/auth';
+import styles from './Auth.module.css';
 
 const Auth = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -47,55 +48,65 @@ const Auth = ({ onLogin }) => {
   };
 
   return (
-    <div className="auth-container">
-      <h2>{isLogin ? 'Login' : 'Register'}</h2>
-      {error && <div className="error-message">{error}</div>}
+    <div className={styles.authContainer}>
+      <h2 className={styles.title}>{isLogin ? 'Login' : 'Register'}</h2>
+      {error && <div className={styles.errorMessage}>{error}</div>}
       
-      <form onSubmit={handleSubmit}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         {!isLogin && (
-          <div className="form-group">
-            <label>Name:</label>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Name:</label>
             <input
+              className={styles.input}
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
               required={!isLogin}
+              placeholder="Enter your full name"
             />
           </div>
         )}
         
-        <div className="form-group">
-          <label>Email:</label>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Email:</label>
           <input
+            className={styles.input}
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             required
+            placeholder="Enter your email address"
           />
         </div>
         
-        <div className="form-group">
-          <label>Password:</label>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Password:</label>
           <input
+            className={styles.input}
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
             required
+            placeholder="Enter your password"
           />
         </div>
         
-        <button type="submit" disabled={isLoading}>
+        <button 
+          className={`${styles.submitButton} ${isLoading ? styles.loading : ''}`}
+          type="submit" 
+          disabled={isLoading}
+        >
           {isLoading ? 'Please wait...' : (isLogin ? 'Login' : 'Register')}
         </button>
       </form>
       
-      <p>
+      <p className={styles.switchText}>
         {isLogin ? "Don't have an account? " : "Already have an account? "}
         <button
-          className="link-button"
+          className={styles.linkButton}
           onClick={() => setIsLogin(!isLogin)}
         >
           {isLogin ? 'Register' : 'Login'}
