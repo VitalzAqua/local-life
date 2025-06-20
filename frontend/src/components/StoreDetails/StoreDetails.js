@@ -63,7 +63,7 @@ const StoreDetails = ({ store, user }) => {
     if (orderType === 'delivery' && store?.category === 'restaurant' && !customerLocation) {
       getCurrentLocation();
     }
-  }, [orderType, store]);
+  }, [orderType, store, customerLocation]);
 
   const getCurrentLocation = () => {
     setGettingLocation(true);
