@@ -168,7 +168,7 @@
   padding-top: 140px;
 }
 
-/* Responsive design */
+/* Mobile Responsive Design */
 @media (max-width: 768px) {
   .searchControls {
     padding: 0.75rem;
@@ -176,26 +176,91 @@
   
   .searchForm {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
   }
   
   .searchInput {
     width: 100%;
+    padding: 0.75rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .searchButton,
+  .clearButton {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
   
   .categoryFilters {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .categoryLabel {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    margin-right: 0;
   }
   
   .categoryCheckbox {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    min-width: 44px; /* Touch target size */
+    min-height: 44px;
+    justify-content: center;
+  }
+  
+  .leafletContainer :global(.leaflet-control-zoom) {
+    top: 180px !important;
+    right: 10px !important;
+    left: auto !important;
+  }
+  
+  .mapContent {
+    padding-top: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchControls {
+    padding: 0.5rem;
+  }
+
+  .searchForm {
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .searchInput {
+    padding: 0.625rem;
+  }
+
+  .searchButton,
+  .clearButton {
+    padding: 0.625rem;
+    font-size: 0.85rem;
+  }
+
+  .categoryCheckbox {
     font-size: 0.75rem;
-    padding: 0.125rem 0.375rem;
+    padding: 0.375rem 0.5rem;
+    min-width: 40px;
+    min-height: 40px;
   }
   
   .leafletContainer :global(.leaflet-control-zoom) {
     top: 160px !important;
+    right: 5px !important;
+  }
+  
+  .leafletContainer :global(.leaflet-control-zoom a) {
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 38px !important;
+    font-size: 16px !important;
   }
   
   .mapContent {
@@ -203,20 +268,109 @@
   }
 }
 
-@media (max-width: 480px) {
-  .leafletContainer :global(.leaflet-control-zoom) {
-    top: 200px !important;
-    left: 5px !important;
+/* Tablet Landscape */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+  .searchForm {
+    flex-direction: row;
+    flex-wrap: wrap;
   }
-  
+
+  .searchInput {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .categoryFilters {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}
+
+/* Large Screens */
+@media (min-width: 1200px) {
+  .searchControls {
+    padding: 1.25rem;
+  }
+
+  .searchInput {
+    font-size: 1rem;
+  }
+
+  .categoryCheckbox {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .searchButton,
+  .clearButton {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  .categoryCheckbox {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem;
+  }
+
   .leafletContainer :global(.leaflet-control-zoom a) {
-    width: 28px !important;
-    height: 28px !important;
-    line-height: 26px !important;
-    font-size: 14px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
   }
-  
+}
+
+/* Landscape Phone Optimization */
+@media (max-width: 768px) and (orientation: landscape) and (max-height: 500px) {
+  .searchControls {
+    padding: 0.5rem;
+  }
+
+  .searchForm {
+    margin-bottom: 0.5rem;
+  }
+
+  .categoryFilters {
+    gap: 0.25rem;
+  }
+
+  .categoryCheckbox {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    min-height: 36px;
+  }
+
+  .leafletContainer :global(.leaflet-control-zoom) {
+    top: 120px !important;
+  }
+
   .mapContent {
-    padding-top: 220px;
+    padding-top: 140px;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .categoryCheckbox {
+    transition: none;
+  }
+
+  .categoryCheckbox:hover {
+    transform: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .searchInput,
+  .categoryCheckbox {
+    border-width: 2px;
+  }
+
+  .searchButton,
+  .clearButton {
+    border: 2px solid;
   }
 } 
