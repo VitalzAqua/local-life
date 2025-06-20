@@ -25,6 +25,12 @@
   margin-bottom: 1rem;
 }
 
+.searchButtons {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .searchInput {
   flex: 1;
   padding: 0.5rem 0.75rem;
@@ -107,6 +113,15 @@
   margin: 0;
 }
 
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+  min-width: 16px;
+  height: 16px;
+}
+
 .leafletContainer {
   height: 100% !important;
   width: 100% !important;
@@ -186,9 +201,15 @@
     font-size: 16px; /* Prevents zoom on iOS */
   }
 
+  .searchButtons {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
   .searchButton,
   .clearButton {
-    width: 100%;
+    flex: 1;
     padding: 0.75rem;
     font-size: 0.9rem;
   }
@@ -234,7 +255,7 @@
   }
   
   .mapContent {
-    padding-top: 200px;
+    padding-top: 220px;
   }
 }
 
@@ -286,7 +307,7 @@
   }
   
   .mapContent {
-    padding-top: 180px;
+    padding-top: 200px;
   }
 }
 
