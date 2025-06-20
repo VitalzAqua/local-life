@@ -10,7 +10,6 @@ import {
   validateUserSession, 
   clearUserSession, 
   storeUserSession,
-  isAdminAuthenticated as checkAdminAuthenticated,
   setAdminAuthenticated 
 } from './utils/auth';
 import './utils/cleanupAdminAuth'; // Auto-cleanup admin auth on app load
