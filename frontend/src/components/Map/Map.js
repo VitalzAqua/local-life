@@ -116,22 +116,25 @@ const Map = ({ userLocation, onStoreSelect }) => {
             onChange={(e) => setQuery(e.target.value)}
             className={styles.searchInput}
           />
-          <button type="submit" className={styles.searchButton}>
-            Search
-          </button>
-          {isSearchActive && (
-            <button type="button" onClick={handleClearSearch} className={styles.clearButton}>
-              Clear
+          <div className={styles.searchButtons}>
+            <button type="submit" className={styles.searchButton}>
+              Search
             </button>
-          )}
+            {isSearchActive && (
+              <button type="button" onClick={handleClearSearch} className={styles.clearButton}>
+                Clear
+              </button>
+            )}
+          </div>
         </form>
 
         <div className={styles.categoryFilters}>
           <span className={styles.categoryLabel}>Categories:</span>
           <div className={styles.categoryCheckboxes}>
             {availableCategories.map(category => {
-              const IconComponent = CategoryIcons[category.toLowerCase()] || CategoryIcons.default;
-              const iconColor = CategoryColors[category.toLowerCase()] || CategoryColors.default;
+              const categoryKey = category.toLowerCase();
+              const IconComponent = CategoryIcons[categoryKey] || CategoryIcons.default;
+              const iconColor = CategoryColors[categoryKey] || CategoryColors.default;
               
               return (
               <label key={category} className={styles.categoryCheckbox}>
@@ -140,11 +143,15 @@ const Map = ({ userLocation, onStoreSelect }) => {
                   checked={selectedCategories.includes(category)}
                   onChange={() => handleCategoryChange(category)}
                 />
-                  <IconComponent 
-                    size={16} 
-                    color={iconColor} 
-                    style={{ marginRight: '4px' }}
-                  />
+                <span className={styles.iconWrapper}>
+                  {IconComponent && (
+                    <IconComponent 
+                      size={16} 
+                      color={iconColor} 
+                      style={{ display: 'inline-block', verticalAlign: 'middle' }}
+                    />
+                  )}
+                </span>
                 <span>{category}</span>
               </label>
               );
