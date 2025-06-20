@@ -523,43 +523,134 @@
   border: 1px solid #f5c6cb;
 }
 
-/* Responsive Design */
+/* Mobile Responsive Design */
 @media (max-width: 768px) {
   .storeHeader {
     padding: 1rem;
   }
-  
+
   .storeName {
     font-size: 1.25rem;
   }
-  
+
+  .storeInfo {
+    gap: 0.75rem;
+  }
+
+  .storeInfoItem {
+    font-size: 0.8rem;
+  }
+
   .tabs {
-    flex-direction: column;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
   .tab {
+    flex: none;
+    min-width: 120px;
     padding: 0.75rem 1rem;
-    text-align: left;
+    font-size: 0.9rem;
   }
-  
+
   .tabContent {
     padding: 1rem;
-    max-height: 300px;
+    max-height: 350px;
   }
-  
+
   .productsGrid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
-  .cartItem {
+
+  .productCard {
+    padding: 1rem;
+  }
+
+  .productActions {
     flex-direction: column;
     gap: 0.75rem;
-    align-items: flex-start;
+    align-items: stretch;
   }
-  
+
+  .quantityControls {
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .addToCartButton {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .cartItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .cartItemInfo {
+    width: 100%;
+  }
+
   .cartItemActions {
-    align-self: flex-end;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .orderTypeOptions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .orderTypeOption {
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .deliveryAddress {
+    padding: 1rem;
+  }
+
+  .locationDisplay {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .getLocationButton,
+  .refreshLocationButton {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .reservationForm {
+    gap: 1rem;
+  }
+
+  .formGroup {
+    margin-bottom: 1rem;
+  }
+
+  .formInput,
+  .formSelect,
+  .formTextarea {
+    padding: 0.75rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  .orderButton,
+  .reserveButton {
+    padding: 1rem;
+    font-size: 1rem;
   }
 }
 
@@ -567,21 +658,170 @@
   .storeHeader {
     padding: 0.75rem;
   }
-  
+
+  .storeName {
+    font-size: 1.1rem;
+  }
+
+  .storeCategory {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .tab {
+    min-width: 100px;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .tabContent {
+    padding: 0.75rem;
+    max-height: 300px;
+  }
+
   .productCard {
     padding: 0.75rem;
   }
-  
-  .productActions {
-    flex-direction: column;
-    gap: 0.75rem;
+
+  .productName {
+    font-size: 0.9rem;
   }
-  
-  .quantityControls {
-    justify-content: center;
+
+  .productPrice {
+    font-size: 1rem;
   }
-  
-  .formGroup {
-    margin-bottom: 0.75rem;
+
+  .quantityButton {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+
+  .cartItem {
+    padding: 0.75rem;
+  }
+
+  .cartItemName {
+    font-size: 0.9rem;
+  }
+
+  .cartItemPrice {
+    font-size: 0.85rem;
+  }
+
+  .orderTypeOption {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .locationDisplay {
+    padding: 0.625rem;
+    font-size: 0.8rem;
+  }
+
+  .formInput,
+  .formSelect,
+  .formTextarea {
+    padding: 0.625rem;
+  }
+
+  .formLabel {
+    font-size: 0.85rem;
+  }
+
+  .orderButton,
+  .reserveButton {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .emptyState {
+    padding: 1.5rem 1rem;
+  }
+
+  .emptyStateTitle {
+    font-size: 1rem;
+  }
+
+  .emptyStateText {
+    font-size: 0.85rem;
+  }
+}
+
+/* Tablet Landscape */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .productsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+
+  .tabContent {
+    max-height: 450px;
+  }
+}
+
+/* Large Screens */
+@media (min-width: 1200px) {
+  .productsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+
+  .tabContent {
+    max-height: 500px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .quantityButton {
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
+  }
+
+  .tab {
+    padding: 1rem;
+    min-height: 44px;
+  }
+
+  .addToCartButton,
+  .orderButton,
+  .reserveButton {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  .removeButton {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  .productCard,
+  .quantityButton,
+  .addToCartButton,
+  .orderButton,
+  .reserveButton {
+    transition: none;
+  }
+
+  .productCard:hover {
+    transform: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .productCard {
+    border-width: 2px;
+  }
+
+  .storeCategory {
+    border: 2px solid;
+  }
+
+  .tab.active {
+    border-bottom-width: 4px;
   }
 } 
