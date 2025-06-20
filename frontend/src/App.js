@@ -21,7 +21,6 @@ function App() {
   const [selectedStore, setSelectedStore] = useState(null);
   const [sidebarView, setSidebarView] = useState(null); // 'orders', 'store', 'admin'
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   useEffect(() => {
     // Get user location
@@ -41,7 +40,6 @@ function App() {
     }
 
     // Admin authentication is never persisted - always requires re-authentication
-    setIsAdminAuthenticated(false);
   }, []);
 
   const handleLogin = (userData) => {
@@ -58,16 +56,12 @@ function App() {
   const handleStoreSelect = (store) => {
     setSelectedStore(store);
     setSidebarView('store');
-    // Reset admin authentication when switching views for security
-    setIsAdminAuthenticated(false);
   };
 
   const handleShowOrders = () => {
     if (user) {
       setSidebarView('orders');
       setSelectedStore(null);
-      // Reset admin authentication when switching views for security
-      setIsAdminAuthenticated(false);
     }
   };
 
@@ -78,7 +72,6 @@ function App() {
 
   const handleAdminLogin = () => {
     // Set admin authenticated for current session only (not persisted)
-    setIsAdminAuthenticated(true);
     setAdminAuthenticated(true);
     setShowAdminLogin(false);
     setSidebarView('admin');
@@ -93,7 +86,7 @@ function App() {
     setSidebarView(null);
     setSelectedStore(null);
     // Reset admin authentication when closing sidebar for security
-    setIsAdminAuthenticated(false);
+    setAdminAuthenticated(false);
   };
 
   // Render sidebar content based on current view
