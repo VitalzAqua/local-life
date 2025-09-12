@@ -1,0 +1,26 @@
+# Database Configuration
+DATABASE_URL=postgresql://neondb_owner:npg_JcXhu4D5BpzS@ep-ancient-bird-a59vx2lc-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
+
+# Server Configuration  
+PORT=3001
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:3000
+
+# Database Pool Settings
+DB_POOL_SIZE=10
+DB_IDLE_TIMEOUT=30000
+DB_CONNECTION_TIMEOUT=60000
+
+# Admin Configuration
+ADMIN_CODE=780523
+
+# Security (Add in production)
+JWT_SECRET=your-jwt-secret-here
+SESSION_SECRET=your-session-secret-here
+
+# API Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# External APIs (Optional)
+NOMINATIM_URL=https://nominatim.openstreetmap.org 
