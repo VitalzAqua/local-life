@@ -1,0 +1,4 @@
+Kubernet, microservice
+Messagequeue
+
+./start-services.sh
