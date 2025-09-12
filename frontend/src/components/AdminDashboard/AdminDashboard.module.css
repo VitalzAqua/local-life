@@ -1,0 +1,514 @@
+/* AdminDashboard.module.css - Admin dashboard component styling */
+
+.adminDashboard {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.adminHeader {
+  padding: 1.5rem;
+  border-bottom: 2px solid #e9ecef;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adminTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  flex: 1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tab:hover {
+  color: #007bff;
+  background: #e9ecef;
+}
+
+.tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  background: white;
+}
+
+.adminContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.adminSection {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.adminList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.adminItem {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.adminItem:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.adminItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.adminItemInfo {
+  flex: 1;
+}
+
+.adminItemInfo strong {
+  display: block;
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.adminCustomer,
+.adminStore,
+.adminDate {
+  display: block;
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-bottom: 0.25rem;
+}
+
+.orderType {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.orderType.eat_in {
+  background: #e3f2fd;
+  color: #0d47a1;
+  border: 1px solid #bbdefb;
+}
+
+.orderType.delivery {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc02;
+}
+
+.driverInfo {
+  display: block;
+  font-size: 0.8rem;
+  color: #17a2b8;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.adminCustomer {
+  color: #007bff;
+  font-weight: 500;
+}
+
+.adminStore {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.statusControl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.deleteButton {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+}
+
+.deleteButton:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.statusSelect {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  background: white;
+}
+
+.statusSelect:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.adminItemDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detailLabel {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.detailValue {
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.totalAmount {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #28a745;
+}
+
+.adminItems {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.adminItems strong {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: #495057;
+  font-size: 0.875rem;
+}
+
+.adminItems ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adminItems li {
+  background: #f8f9fa;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.itemNotes {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+.userDetails {
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.userDetailsTitle {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.75rem;
+}
+
+.userStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.statItem {
+  text-align: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 0.375rem;
+  border: 1px solid #e9ecef;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #007bff;
+  display: block;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.userButton {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  margin-right: 0.5rem;
+}
+
+.userButton:hover {
+  background: #0056b3;
+}
+
+.userButton.selected {
+  background: #28a745;
+}
+
+.userButton.selected:hover {
+  background: #218838;
+}
+
+.loadingState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.loadingSpinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e9ecef;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorState {
+  text-align: center;
+  padding: 2rem;
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.emptyStateIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.emptyStateTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.emptyStateText {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Status Colors */
+.statusSelect[value="pending"] {
+  background: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.statusSelect[value="confirmed"] {
+  background: #d4edda;
+  border-color: #28a745;
+  color: #155724;
+}
+
+.statusSelect[value="completed"] {
+  background: #e2e3e5;
+  border-color: #6c757d;
+  color: #383d41;
+}
+
+.statusSelect[value="cancelled"] {
+  background: #f8d7da;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.statusSelect[value="ready"] {
+  background: #d1ecf1;
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .adminHeader {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .adminTitle {
+    font-size: 1.25rem;
+  }
+  
+  .tabs {
+    flex-direction: column;
+  }
+  
+  .tab {
+    padding: 0.75rem 1rem;
+    text-align: left;
+  }
+  
+  .adminContent {
+    padding: 1rem;
+  }
+  
+  .adminItemHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .statusControl {
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .statusSelect {
+    width: 100%;
+  }
+  
+  .adminItemDetails {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .userStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .adminHeader {
+    padding: 0.75rem;
+  }
+  
+  .adminTitle {
+    font-size: 1.1rem;
+  }
+  
+  .adminItem {
+    padding: 1rem;
+  }
+  
+  .userStats {
+    grid-template-columns: 1fr;
+  }
+  
+  .statItem {
+    padding: 0.5rem;
+  }
+  
+  .statValue {
+    font-size: 1.25rem;
+  }
+} 
