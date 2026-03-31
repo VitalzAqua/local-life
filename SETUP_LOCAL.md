@@ -1,5 +1,21 @@
 # Local Life — Local Development Setup
 
+For the shortest path from a fresh clone:
+
+```bash
+npm run setup:local
+createdb local_life
+psql -U postgres -d local_life -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+npm run db:init
+npm run dev
+```
+
+Optional store seed:
+
+```bash
+npm run db:seed:stores
+```
+
 ## Prerequisites
 
 - Node.js 18+ (https://nodejs.org)
@@ -7,7 +23,29 @@
 
 ---
 
-## 1. Create the PostgreSQL database
+## 1. Copy environment files
+
+From the project root:
+
+```bash
+npm run env:copy
+```
+
+This creates `.env` files for the backend, frontend, and driver-assignment service if they do not already exist.
+
+---
+
+## 2. Install dependencies
+
+From the project root:
+
+```bash
+npm run install:all
+```
+
+---
+
+## 3. Create the PostgreSQL database
 
 Open psql as the postgres superuser and run:
 
@@ -15,32 +53,38 @@ Open psql as the postgres superuser and run:
 CREATE DATABASE local_life;
 ```
 
+Enable PostGIS:
+
+```bash
+psql -U postgres -d local_life -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+```
+
 Then run the schema to create all tables and seed the drivers:
 
 ```bash
-psql -U postgres -d local_life -f backend/sql/schema.sql
+npm run db:init
 ```
 
-> **Note:** If your postgres username or password is different, update `DATABASE_URL` in `backend/.env` and `driver-assignment-service/.env`.
-> Default assumed: username = `postgres`, password = `postgres`.
+> If your local postgres username or database name is different, run:
+> `PGUSER=your_user PGDATABASE=your_database npm run db:init`
 
 ---
 
-## 2. Install dependencies
+## 4. Start the three services
 
-Run these three commands from the project root:
+From the project root:
 
 ```bash
-cd backend && npm install
-cd ../driver-assignment-service && npm install
-cd ../frontend && npm install
+npm run dev
 ```
 
----
+That starts all three services together:
 
-## 3. Start the three services
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:3001`
+- Driver assignment service: `http://localhost:3002`
 
-Open **three separate terminals** and run one command in each:
+If you prefer separate terminals, run one command in each:
 
 **Terminal 1 — Backend API (port 3001)**
 ```bash
@@ -64,9 +108,15 @@ The app will be available at **http://localhost:3000**
 
 ---
 
-## 4. Seed stores (optional)
+## 5. Seed stores (optional)
 
-If your `stores` table is empty, add some sample stores in psql:
+For the larger Toronto dataset:
+
+```bash
+npm run db:seed:stores
+```
+
+If you want only a few manual demo stores instead, add them in psql:
 
 ```sql
 INSERT INTO stores (name, category, location, attributes) VALUES
@@ -99,5 +149,5 @@ INSERT INTO stores (name, category, location, attributes) VALUES
 | `DATABASE_URL` connection error | Check postgres is running: `pg_ctl status` |
 | PostGIS not found | `CREATE EXTENSION postgis;` inside `local_life` DB |
 | Port already in use | Kill the process using that port |
-| No stores visible on map | Run the INSERT statements above |
-| No drivers available | Re-run `schema.sql` — it seeds 5 drivers |
+| No stores visible on map | Run `npm run db:seed:stores` or add the sample inserts above |
+| No drivers available | Run `npm run db:init` again to reseed drivers from `schema.sql` |

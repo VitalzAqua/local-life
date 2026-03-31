@@ -34,8 +34,10 @@ router.get('/', validateSearchQuery, async (req, res) => {
       OR (attributes->>'address') ILIKE $${i}
       OR (attributes->>'phone') ILIKE $${i}
       OR EXISTS (
-        SELECT 1 FROM jsonb_array_elements_text(attributes->'products') AS prod
-        WHERE prod ILIKE $${i}
+        SELECT 1
+        FROM jsonb_array_elements(COALESCE(attributes->'products', '[]'::jsonb)) AS prod
+        WHERE (prod->>'name') ILIKE $${i}
+           OR (prod->>'description') ILIKE $${i}
       )
     )`;
   });

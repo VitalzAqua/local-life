@@ -6,6 +6,24 @@ This repository is designed as a portfolio project that demonstrates end-to-end 
 
 Live demo: [https://local-life-frontend.vercel.app](https://local-life-frontend.vercel.app)
 
+## Quick Start
+
+If you want the shortest local path:
+
+```bash
+npm run setup:local
+createdb local_life
+psql -U postgres -d local_life -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+npm run db:init
+npm run dev
+```
+
+Optional sample data:
+
+```bash
+npm run db:seed:stores
+```
+
 ## Features
 
 - Interactive Leaflet map centered on the user's location
@@ -161,7 +179,31 @@ local-life/
 - PostgreSQL 14+
 - PostGIS extension enabled in PostgreSQL
 
-### 1. Create the database
+### 1. Copy environment files
+
+From the repository root:
+
+```bash
+npm run env:copy
+```
+
+This creates local `.env` files for:
+
+- `backend/.env`
+- `frontend/.env`
+- `driver-assignment-service/.env`
+
+If any of those files already exist, the script leaves them untouched.
+
+### 2. Install dependencies
+
+From the repository root:
+
+```bash
+npm run install:all
+```
+
+### 3. Create the database
 
 ```sql
 CREATE DATABASE local_life;
@@ -173,38 +215,35 @@ Enable PostGIS in the database if it is not already enabled:
 CREATE EXTENSION postgis;
 ```
 
-### 2. Load the schema
+### 4. Load the schema
 
 From the repository root:
 
 ```bash
-psql -U postgres -d local_life -f backend/sql/schema.sql
+npm run db:init
 ```
 
-### 3. Seed stores
+By default this uses:
+
+- `PGUSER=postgres`
+- `PGDATABASE=local_life`
+
+If your local Postgres username or database name is different, override them when running the command:
+
+```bash
+PGUSER=your_user PGDATABASE=your_database npm run db:init
+```
+
+### 5. Seed stores
 
 You have two options:
 
 - For a quick demo, use the sample inserts documented in [`SETUP_LOCAL.md`](./SETUP_LOCAL.md)
-- For a larger dataset, load [`backend/sql/1000_stores.sql`](./backend/sql/1000_stores.sql)
-
-Example:
+- For a larger dataset, run:
 
 ```bash
-psql -U postgres -d local_life -f backend/sql/1000_stores.sql
+npm run db:seed:stores
 ```
-
-### 4. Install dependencies
-
-From the repository root:
-
-```bash
-npm run install:all
-```
-
-### 5. Configure environment variables
-
-Create local `.env` files for the backend, driver-assignment service, and frontend using the variables listed below.
 
 ### 6. Start the application
 
@@ -226,6 +265,14 @@ You can also run each service separately:
 cd backend && npm run dev
 cd driver-assignment-service && npm run dev
 cd frontend && npm run dev
+```
+
+### Helpful commands
+
+```bash
+npm run test
+npm run build
+npm run verify
 ```
 
 ## Environment Variables

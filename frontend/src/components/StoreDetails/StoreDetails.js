@@ -4,6 +4,21 @@ import { getUserId } from '../../utils/auth';
 import AddressInput from '../AddressInput/AddressInput';
 import styles from './StoreDetails.module.css';
 
+const normalizeProducts = (products) => {
+  if (!Array.isArray(products)) {
+    return [];
+  }
+
+  return products
+    .filter(product => product && typeof product === 'object' && product.name != null && product.price != null)
+    .map(product => ({
+      name: String(product.name).trim(),
+      price: Number(product.price),
+      description: typeof product.description === 'string' ? product.description.trim() : ''
+    }))
+    .filter(product => product.name && Number.isFinite(product.price));
+};
+
 const StoreDetails = ({ store, user }) => {
   const [activeTab, setActiveTab] = useState('products');
   const [cart, setCart] = useState([]);
@@ -21,14 +36,17 @@ const StoreDetails = ({ store, user }) => {
   const [customerLocationData, setCustomerLocationData] = useState(null);
   const [deliveryAvailable, setDeliveryAvailable] = useState(true);
 
-  // Initialize quantities for products
   useEffect(() => {
-    if (store?.attributes?.products) {
+    const products = normalizeProducts(store?.attributes?.products);
+
+    if (products.length > 0) {
       const initialQuantities = {};
-      store.attributes.products.forEach(product => {
+      products.forEach(product => {
         initialQuantities[product.name] = 0;
       });
       setQuantities(initialQuantities);
+    } else {
+      setQuantities({});
     }
   }, [store]);
 
@@ -249,7 +267,7 @@ const StoreDetails = ({ store, user }) => {
   };
 
   const renderProducts = () => {
-    const products = store?.attributes?.products;
+    const products = normalizeProducts(store?.attributes?.products);
     
     if (!products || products.length === 0) {
       return (
@@ -269,6 +287,9 @@ const StoreDetails = ({ store, user }) => {
           <div key={index} className={styles.productCard}>
             <h4 className={styles.productName}>{product.name}</h4>
             <div className={styles.productPrice}>${product.price.toFixed(2)}</div>
+            {product.description && (
+              <div className={styles.productDescription}>{product.description}</div>
+            )}
             <div className={styles.productActions}>
               <div className={styles.quantityControls}>
                 <button

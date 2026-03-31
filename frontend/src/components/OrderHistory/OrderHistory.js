@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { usePollingEffect } from '../../hooks/usePollingEffect';
 import { getUserOrders, getUserReservations } from '../../services/apiService';
 import styles from './OrderHistory.module.css';
 
@@ -29,19 +30,7 @@ const OrderHistory = ({ user }) => {
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const interval = setInterval(() => {
-      fetchData();
-    }, 10000); // Poll every 10 seconds
-
-    return () => clearInterval(interval);
-  }, [fetchData, user?.id]);
+  usePollingEffect(fetchData, 10000, Boolean(user?.id));
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);

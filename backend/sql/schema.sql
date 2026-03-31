@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS stores (
   name       TEXT NOT NULL,
   category   TEXT NOT NULL,
   location   GEOGRAPHY(Point, 4326) NOT NULL,
-  attributes JSONB
+  attributes JSONB                       -- includes address/open/close/products
+                                         -- products shape: [{name, price, description?}]
 );
 CREATE INDEX IF NOT EXISTS idx_stores_location ON stores USING GIST(location);
 CREATE INDEX IF NOT EXISTS idx_stores_category ON stores(category);

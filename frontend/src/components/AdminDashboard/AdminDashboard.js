@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { usePollingEffect } from '../../hooks/usePollingEffect';
 import apiService from '../../services/apiService';
 import styles from './AdminDashboard.module.css';
 
@@ -26,17 +27,7 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchData();
-    }, 10000); // Poll every 10 seconds
-
-    return () => clearInterval(interval);
-  }, [fetchData]);
+  usePollingEffect(fetchData, 10000);
 
   const fetchAllOrders = async () => {
     try {

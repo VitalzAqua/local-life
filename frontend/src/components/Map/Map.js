@@ -3,10 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-le
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useMapControls } from '../../hooks/useMapControls';
+import { useDriverTracking } from '../../hooks/useDriverTracking';
 import { useStoreData } from '../../hooks/useStoreData';
 import { createSimpleIcons } from '../../utils/simpleIcons';
 import { calculateDistance } from '../../utils/mapUtils';
-import { clearAdminSession, isAdminAuthenticated, isAuthenticated, storeAdminSession } from '../../utils/auth';
+import { isAuthenticated } from '../../utils/auth';
 import SavedLocations from '../SavedLocations/SavedLocations';
 import SaveLocationModal from '../SavedLocations/SaveLocationModal';
 import EnhancedSearchInput from '../EnhancedSearchInput/EnhancedSearchInput';
@@ -183,14 +184,18 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
   const [showSavedLocations, setShowSavedLocations] = useState(false);
   const [saveLocationModal, setSaveLocationModal] = useState({ isOpen: false, store: null });
   const [selectedLocation, setSelectedLocation] = useState(null);
-  
-  const [drivers, setDrivers] = useState([]);
-  const [driversLoading, setDriversLoading] = useState(false);
-  const [driversError, setDriversError] = useState(null);
-  const [isAdminMode, setIsAdminMode] = useState(isAdminAuthenticated());
-  const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
 
   const icons = createSimpleIcons();
+  const {
+    drivers,
+    driversLoading,
+    driversError,
+    isAdminMode,
+    showAdminPasswordModal,
+    setShowAdminPasswordModal,
+    handleAdminModeToggle,
+    handleAdminPasswordSubmit
+  } = useDriverTracking(user);
   
   const carIcons = {
     available: L.divIcon({
@@ -218,58 +223,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
           [store.lat, store.lng]
         ) <= radiusKm;
       });
-
-  const fetchDrivers = useCallback(async () => {
-    setDriversLoading(true);
-    setDriversError(null);
-    
-    try {
-      let fetchedDrivers = [];
-      
-      if (isAdminMode) {
-        fetchedDrivers = await apiService.getAllDriversAdmin();
-      } else if (user?.id) {
-        fetchedDrivers = await apiService.getUserDeliveryDrivers(user.id);
-      }
-      
-      setDrivers(fetchedDrivers);
-    } catch (err) {
-      console.error('Error fetching drivers:', err);
-      setDriversError(err.message);
-      if (err.message.includes('Admin authentication required')) {
-        clearAdminSession();
-        setIsAdminMode(false);
-        setShowAdminPasswordModal(false);
-      }
-    } finally {
-      setDriversLoading(false);
-    }
-  }, [isAdminMode, user?.id]);
-
-  const handleAdminModeToggle = useCallback(() => {
-    if (!isAdminMode) {
-      setShowAdminPasswordModal(true);
-    } else {
-      clearAdminSession();
-      setIsAdminMode(false);
-    }
-  }, [isAdminMode]);
-
-  const handleAdminPasswordSubmit = useCallback(async (password) => {
-    try {
-      setDriversLoading(true);
-      setDriversError(null);
-      const adminSession = await apiService.adminLogin(password);
-      storeAdminSession(adminSession);
-      setIsAdminMode(true);
-      setShowAdminPasswordModal(false);
-    } catch (err) {
-      console.error('Admin authentication failed:', err);
-      setDriversError(err.response?.data?.error || err.message || 'Invalid admin password');
-    } finally {
-      setDriversLoading(false);
-    }
-  }, []);
 
   const handleSearchFromInput = useCallback((query) => {
     setSearchQuery(query);
@@ -363,39 +316,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
   const currentRadius = radius === 'custom' ? parseFloat(customRadius) : parseFloat(radius);
   const showRadiusCircle = radius !== 'all' && userLocation && currentRadius > 0;
   const hasSearchResults = (searchQuery || '').trim() !== '' || selectedCategories.length > 0;
-
-  useEffect(() => {
-    fetchDrivers();
-  }, [fetchDrivers]);
-
-  useEffect(() => {
-    if (!user?.id && !isAdminMode) return;
-
-    const refreshDrivers = async () => {
-      try {
-        let updatedDrivers = [];
-        if (isAdminMode) {
-          updatedDrivers = await apiService.getAllDriversAdmin();
-        } else if (user?.id) {
-          updatedDrivers = await apiService.getUserDeliveryDrivers(user.id);
-        }
-        setDrivers(updatedDrivers);
-      } catch (err) {
-        console.error('Error refreshing driver positions:', err);
-        if (err.message?.includes('Admin authentication required')) {
-          clearAdminSession();
-          setIsAdminMode(false);
-        }
-      }
-    };
-
-    refreshDrivers();
-    const refreshInterval = setInterval(refreshDrivers, 3000);
-
-    return () => {
-      clearInterval(refreshInterval);
-    };
-  }, [user?.id, isAdminMode]);
 
   if (error) {
     return <div className={styles.mapError}>Error loading map: {error}</div>;

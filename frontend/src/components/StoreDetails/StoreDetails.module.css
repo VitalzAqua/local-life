@@ -121,6 +121,13 @@
   margin-bottom: 0.75rem;
 }
 
+.productDescription {
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
 .productActions {
   display: flex;
   gap: 0.5rem;
