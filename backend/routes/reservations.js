@@ -4,15 +4,10 @@ const { RESERVATION_STATUS } = require('../config/constants');
 const { validateReservationCreation, validateStatusUpdate } = require('../middleware/validation');
 const { requireAdmin, requireAuth, requireSameUserOrAdmin, requireUser } = require('../middleware/auth');
 const { db } = require('../db');
-
-// Helper function to check if reservation time is within store hours
-const isReservationWithinStoreHours = (reservationDate, storeHours) => {
-    if (!storeHours.open || !storeHours.close) return true; // If no hours specified, allow all times
-    
-    const reservationTime = new Date(reservationDate).toTimeString().slice(0, 5); // HH:MM format
-    
-    return reservationTime >= storeHours.open && reservationTime <= storeHours.close;
-};
+const {
+    isFutureBusinessDateTime,
+    isReservationWithinStoreHours
+} = require('../utils/storeHours');
 
 // Create new reservation
 router.post('/', requireUser, validateReservationCreation, async (req, res) => {
@@ -40,10 +35,7 @@ router.post('/', requireUser, validateReservationCreation, async (req, res) => {
         }
         
         // Check if reservation is in the future
-        const reservationDateTime = new Date(reservation_date);
-        const now = new Date();
-        
-        if (reservationDateTime <= now) {
+        if (!isFutureBusinessDateTime(reservation_date)) {
             return res.status(400).json({ error: 'Reservation must be in the future' });
         }
         

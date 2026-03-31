@@ -4,17 +4,7 @@ const { ORDER_STATUS, SERVER_CONFIG } = require('../config/constants');
 const { validateOrderCreation, validateStatusUpdate } = require('../middleware/validation');
 const { requireAdmin, requireAuth, requireSameUserOrAdmin, requireUser } = require('../middleware/auth');
 const { db } = require('../db');
-
-// Helper function to check if current time is within store hours
-const isWithinStoreHours = (storeHours) => {
-  if (!storeHours || typeof storeHours !== 'object') return true;
-  if (!storeHours.open || !storeHours.close) return true; // If no hours specified, allow all times
-
-  const now = new Date();
-  const currentTime = now.toTimeString().slice(0, 5); // HH:MM (local)
-
-  return currentTime >= String(storeHours.open).slice(0, 5) && currentTime <= String(storeHours.close).slice(0, 5);
-};
+const { isStoreOpenNow } = require('../utils/storeHours');
 
 // Create new order
 router.post('/', requireUser, validateOrderCreation, async (req, res) => {
@@ -52,7 +42,7 @@ router.post('/', requireUser, validateOrderCreation, async (req, res) => {
         }
         
         // Check if store is currently open
-        if (!isWithinStoreHours(store.attributes)) {
+        if (!isStoreOpenNow(store.attributes)) {
             return res.status(400).json({ 
                 error: `Store is currently closed. Store hours: ${store.attributes.open} - ${store.attributes.close}` 
             });

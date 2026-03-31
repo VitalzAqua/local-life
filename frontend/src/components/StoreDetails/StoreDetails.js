@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../../services/apiService';
 import { getUserId } from '../../utils/auth';
+import { isStoreOpenNow } from '../../utils/storeHours';
 import AddressInput from '../AddressInput/AddressInput';
 import styles from './StoreDetails.module.css';
 
@@ -256,14 +257,7 @@ const StoreDetails = ({ store, user }) => {
   };
 
   const isStoreOpen = () => {
-    if (!store?.attributes?.open || !store?.attributes?.close) return null;
-    
-    const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 5);
-    const openTime = store.attributes.open;
-    const closeTime = store.attributes.close;
-    
-    return currentTime >= openTime && currentTime <= closeTime;
+    return isStoreOpenNow(store?.attributes);
   };
 
   const renderProducts = () => {
