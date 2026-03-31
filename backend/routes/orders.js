@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { ORDER_STATUS, SERVER_CONFIG } = require('../config/constants');
 const { validateOrderCreation, validateStatusUpdate } = require('../middleware/validation');
-const adminAuth = require('../middleware/adminAuth');
+const { requireAdmin, requireAuth, requireSameUserOrAdmin, requireUser } = require('../middleware/auth');
 const { db } = require('../db');
 
 // Helper function to check if current time is within store hours
@@ -17,14 +17,10 @@ const isWithinStoreHours = (storeHours) => {
 };
 
 // Create new order
-router.post('/', validateOrderCreation, async (req, res) => {
+router.post('/', requireUser, validateOrderCreation, async (req, res) => {
     try {
-        const { user_id, store_id, items, total_amount, order_type, customer_location } = req.body;
-        
-        // Check if user is authenticated
-        if (!user_id) {
-            return res.status(401).json({ error: 'Authentication required to place orders' });
-        }
+        const { store_id, items, total_amount, order_type, customer_location } = req.body;
+        const user_id = Number(req.auth.sub);
         
         // Get store information to check hours and category
         const storeResult = await db.query(
@@ -137,7 +133,7 @@ router.post('/', validateOrderCreation, async (req, res) => {
 });
 
 // Get user's orders
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', requireAuth, requireSameUserOrAdmin('userId'), async (req, res) => {
     try {
         const { userId } = req.params;
         
@@ -187,7 +183,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Update order status
-router.patch('/:orderId/status', validateStatusUpdate, async (req, res) => {
+router.patch('/:orderId/status', requireAdmin, validateStatusUpdate, async (req, res) => {
     try {
         const { orderId } = req.params;
         const { status } = req.body;
@@ -209,7 +205,7 @@ router.patch('/:orderId/status', validateStatusUpdate, async (req, res) => {
 });
 
 // Admin route - Get all orders
-router.get('/admin/all', adminAuth, async (req, res) => {
+router.get('/admin/all', requireAdmin, async (req, res) => {
     try {
         const result = await db.query(
             `SELECT o.*, o.created_at as order_date,
@@ -257,7 +253,7 @@ router.get('/admin/all', adminAuth, async (req, res) => {
 });
 
 // Delete order (Admin only)
-router.delete('/:orderId', adminAuth, async (req, res) => {
+router.delete('/:orderId', requireAdmin, async (req, res) => {
     try {
         const { orderId } = req.params;
         

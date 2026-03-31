@@ -30,7 +30,6 @@ const SaveLocationModal = ({ store, isOpen, onClose, onSave }) => {
       }
 
       const saveData = {
-        user_id: userId,
         store_id: store.id,
         location_name: formData.locationName.trim(),
         notes: formData.notes.trim() || null

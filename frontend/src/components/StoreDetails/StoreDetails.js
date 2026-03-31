@@ -144,7 +144,6 @@ const StoreDetails = ({ store, user }) => {
       }
 
       const orderData = {
-        user_id: parseInt(userId, 10),
         store_id: parseInt(store.id, 10),
         items: cart.map(item => ({
           name: item.name,
@@ -213,7 +212,6 @@ const StoreDetails = ({ store, user }) => {
       }
 
       const reservationPayload = {
-        user_id: parseInt(userId),
         store_id: store.id,
         reservation_date: `${reservationData.date}T${reservationData.time}:00`,
         party_size: reservationData.partySize,

@@ -7,26 +7,41 @@ const { db } = require('./db');
 
 const app = express();
 
-// CORS configuration - Allow multiple localhost ports for development
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Allow any localhost origin in development
-    if (SERVER_CONFIG.NODE_ENV === 'development' && origin.includes('localhost')) {
-      return callback(null, true);
-    }
-    
-    // In production, use the specific CORS_ORIGIN
-    if (origin === SERVER_CONFIG.CORS_ORIGIN) {
-      return callback(null, true);
-    }
-    
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true
-}));
+const resolveRequestOrigin = (req) => {
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const protocol = forwardedProto ? String(forwardedProto).split(',')[0].trim() : req.protocol;
+  const host = req.get('host');
+  return host ? `${protocol}://${host}` : null;
+};
+
+const corsOptionsDelegate = (req, callback) => {
+  const origin = req.header('Origin');
+
+  // Allow requests with no Origin header such as health checks, curl, or
+  // server-to-server traffic.
+  if (!origin) {
+    return callback(null, { origin: true, credentials: true });
+  }
+
+  if (SERVER_CONFIG.NODE_ENV === 'development' && origin.includes('localhost')) {
+    return callback(null, { origin: true, credentials: true });
+  }
+
+  if (SERVER_CONFIG.CORS_ORIGINS.includes(origin)) {
+    return callback(null, { origin: true, credentials: true });
+  }
+
+  // If no explicit CORS origin is configured, allow same-origin browser
+  // requests so a deployed frontend and backend can live on the same host.
+  const sameOrigin = resolveRequestOrigin(req);
+  if (!SERVER_CONFIG.CORS_ORIGINS.length && sameOrigin && origin === sameOrigin) {
+    return callback(null, { origin: true, credentials: true });
+  }
+
+  return callback(new Error('Not allowed by CORS'));
+};
+
+app.use(cors(corsOptionsDelegate));
 
 // Request timeout middleware - prevents hanging requests
 app.use((req, res, next) => {
@@ -277,7 +292,9 @@ app.use((req, res) => {
 const server = app.listen(SERVER_CONFIG.PORT, () => {
   console.log(`🚀 Server running on port ${SERVER_CONFIG.PORT}`);
   console.log(`📍 Environment: ${SERVER_CONFIG.NODE_ENV}`);
-  console.log(`🌐 CORS origin: ${SERVER_CONFIG.CORS_ORIGIN}`);
+  console.log(
+    `🌐 CORS origins: ${SERVER_CONFIG.CORS_ORIGINS.length ? SERVER_CONFIG.CORS_ORIGINS.join(', ') : 'same-origin fallback'}`
+  );
 
   // Wait for startup recovery before starting simulation loops
   setTimeout(() => {

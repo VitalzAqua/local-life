@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const config = {
-  port: process.env.DRIVER_SERVICE_PORT || 3002,
+  port: process.env.PORT || process.env.DRIVER_SERVICE_PORT || 3002,
   database: {
     connectionString: process.env.DATABASE_URL,
     pool: {

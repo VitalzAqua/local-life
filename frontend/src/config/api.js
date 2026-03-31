@@ -1,10 +1,33 @@
+const DEFAULT_DEV_API_URL = 'http://localhost:3001';
+
+const normalizeBaseUrl = (url = '') => String(url).trim().replace(/\/+$/, '');
+
+const resolveApiBaseUrl = () => {
+  const configuredBaseUrl = normalizeBaseUrl(process.env.REACT_APP_API_URL || '');
+
+  if (configuredBaseUrl) {
+    return configuredBaseUrl;
+  }
+
+  // In production, default to same-origin requests so a static frontend can
+  // talk to a backend mounted on the same host without hardcoding localhost.
+  if (process.env.NODE_ENV === 'production') {
+    return '';
+  }
+
+  return DEFAULT_DEV_API_URL;
+};
+
+const BASE_URL = resolveApiBaseUrl();
+
 // API Configuration
 const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:3001',
+  BASE_URL,
   ENDPOINTS: {
     // Auth endpoints
     LOGIN: '/api/users/login',
     REGISTER: '/api/users/register',
+    ADMIN_LOGIN: '/api/users/admin/login',
     
     // Orders endpoints
     ORDERS: '/api/orders',
@@ -55,5 +78,6 @@ export const buildApiUrl = (endpoint, params = {}) => {
 };
 
 // Export individual parts for convenience
-export const { BASE_URL, ENDPOINTS } = API_CONFIG;
+export { BASE_URL };
+export const { ENDPOINTS } = API_CONFIG;
 export default API_CONFIG; 

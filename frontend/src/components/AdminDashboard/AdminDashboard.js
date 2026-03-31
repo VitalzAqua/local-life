@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { buildApiUrl, ENDPOINTS } from '../../config/api';
+import apiService from '../../services/apiService';
 import styles from './AdminDashboard.module.css';
-
-const adminHeaders = {
-  headers: { Authorization: `Bearer ${process.env.REACT_APP_ADMIN_CODE}` }
-};
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -48,8 +43,8 @@ const AdminDashboard = () => {
 
   const fetchAllOrders = async () => {
     try {
-      const response = await axios.get(buildApiUrl(ENDPOINTS.ADMIN_ORDERS), adminHeaders);
-      setOrders(response.data);
+      const data = await apiService.getAdminOrders();
+      setOrders(data);
     } catch (error) {
       console.error('Error fetching orders:', error);
       setError('Failed to load orders');
@@ -60,8 +55,8 @@ const AdminDashboard = () => {
 
   const fetchAllReservations = async () => {
     try {
-      const response = await axios.get(buildApiUrl(ENDPOINTS.ADMIN_RESERVATIONS), adminHeaders);
-      setReservations(response.data);
+      const data = await apiService.getAdminReservations();
+      setReservations(data);
     } catch (error) {
       console.error('Error fetching reservations:', error);
     }
@@ -69,8 +64,8 @@ const AdminDashboard = () => {
 
   const fetchAllUsers = async () => {
     try {
-      const response = await axios.get(buildApiUrl(ENDPOINTS.ADMIN_USERS), adminHeaders);
-      setUsers(response.data);
+      const data = await apiService.getAdminUsers();
+      setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
     }
@@ -78,8 +73,8 @@ const AdminDashboard = () => {
 
   const fetchUserDetails = async (userId) => {
     try {
-      const response = await axios.get(buildApiUrl(ENDPOINTS.USER_DETAILS(userId)), adminHeaders);
-      setUserDetails(response.data);
+      const data = await apiService.getAdminUserDetails(userId);
+      setUserDetails(data);
       setSelectedUser(userId);
     } catch (error) {
       console.error('Error fetching user details:', error);
@@ -88,7 +83,7 @@ const AdminDashboard = () => {
 
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      await axios.patch(buildApiUrl(ENDPOINTS.ORDER_STATUS(orderId)), { status: newStatus }, adminHeaders);
+      await apiService.updateAdminOrderStatus(orderId, newStatus);
       
       setOrders(orders.map(order => 
         order.id === orderId ? { ...order, status: newStatus } : order
@@ -107,7 +102,7 @@ const AdminDashboard = () => {
     }
     
     try {
-      await axios.delete(buildApiUrl(`/api/orders/${orderId}`), adminHeaders);
+      await apiService.deleteAdminOrder(orderId);
       
       // Remove the order from the state
       setOrders(orders.filter(order => order.id !== orderId));
@@ -121,7 +116,7 @@ const AdminDashboard = () => {
 
   const updateReservationStatus = async (reservationId, newStatus) => {
     try {
-      await axios.patch(buildApiUrl(ENDPOINTS.RESERVATION_STATUS(reservationId)), { status: newStatus }, adminHeaders);
+      await apiService.updateAdminReservationStatus(reservationId, newStatus);
       
       setReservations(reservations.map(reservation => 
         reservation.id === reservationId ? { ...reservation, status: newStatus } : reservation
@@ -140,7 +135,7 @@ const AdminDashboard = () => {
     }
     
     try {
-      await axios.delete(buildApiUrl(`/api/reservations/${reservationId}`), adminHeaders);
+      await apiService.deleteAdminReservation(reservationId);
       
       // Remove the reservation from the state
       setReservations(reservations.filter(reservation => reservation.id !== reservationId));

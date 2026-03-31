@@ -19,19 +19,19 @@ const Auth = ({ onLogin }) => {
     setIsLoading(true);
     
     try {
-      let userData;
+      let sessionData;
       if (isLogin) {
-        userData = await apiService.login({
+        sessionData = await apiService.login({
           email: formData.email,
           password: formData.password
         });
       } else {
-        userData = await apiService.register(formData);
+        sessionData = await apiService.register(formData);
       }
       
-      if (userData) {
-        storeUserSession(userData);
-        onLogin(userData);
+      if (sessionData?.user && sessionData?.token) {
+        storeUserSession(sessionData);
+        onLogin(sessionData.user);
       }
     } catch (error) {
       setError(error.response?.data?.error || 'An error occurred');

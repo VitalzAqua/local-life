@@ -1,43 +1,13 @@
 // Authentication utility functions
 export const AUTH_STORAGE_KEYS = {
   USER: 'user',
-  USER_ID: 'userId',
-  ADMIN_AUTH: 'adminAuthenticated'
+  USER_TOKEN: 'userToken',
+  ADMIN_TOKEN: 'adminToken'
 };
 
-/**
- * Get user ID from multiple sources with fallback strategies
- */
-export const getUserId = (user = null) => {
-  // Try direct userId storage first
-  let userId = localStorage.getItem(AUTH_STORAGE_KEYS.USER_ID);
-  
-  // Fallback to user prop if available
-  if (!userId && user?.id) {
-    userId = user.id.toString();
-    localStorage.setItem(AUTH_STORAGE_KEYS.USER_ID, userId);
-  }
-  
-  // Fallback to parsing stored user object
-  if (!userId) {
-    const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        if (userData.id) {
-          userId = userData.id.toString();
-          localStorage.setItem(AUTH_STORAGE_KEYS.USER_ID, userId);
-        }
-      } catch (parseError) {
-        console.error('Error parsing stored user:', parseError);
-        // Clean up corrupted data
-        localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      }
-    }
-  }
-  
-  return userId;
-};
+export const getUserToken = () => localStorage.getItem(AUTH_STORAGE_KEYS.USER_TOKEN);
+
+export const getAdminToken = () => sessionStorage.getItem(AUTH_STORAGE_KEYS.ADMIN_TOKEN);
 
 /**
  * Get stored user data
@@ -54,14 +24,31 @@ export const getStoredUser = () => {
 };
 
 /**
+ * Get user ID from stored session state
+ */
+export const getUserId = (user = null) => {
+  if (user?.id) {
+    return user.id.toString();
+  }
+
+  const storedUser = getStoredUser();
+  return storedUser?.id ? storedUser.id.toString() : null;
+};
+
+/**
  * Store user session data
  */
-export const storeUserSession = (userData) => {
+export const storeUserSession = (sessionData) => {
   try {
-    localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(userData));
-    if (userData.id) {
-      localStorage.setItem(AUTH_STORAGE_KEYS.USER_ID, userData.id.toString());
+    const user = sessionData?.user || null;
+    const token = sessionData?.token || null;
+
+    if (!user || !token) {
+      throw new Error('Missing user session payload');
     }
+
+    localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
+    localStorage.setItem(AUTH_STORAGE_KEYS.USER_TOKEN, token);
   } catch (error) {
     console.error('Error storing user session:', error);
   }
@@ -72,26 +59,33 @@ export const storeUserSession = (userData) => {
  */
 export const clearUserSession = () => {
   localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-  localStorage.removeItem(AUTH_STORAGE_KEYS.USER_ID);
-  // Also clear admin auth if it exists (for cleanup)
-  localStorage.removeItem(AUTH_STORAGE_KEYS.ADMIN_AUTH);
+  localStorage.removeItem(AUTH_STORAGE_KEYS.USER_TOKEN);
 };
 
 /**
  * Check if user is authenticated
  */
 export const isAuthenticated = () => {
-  const userId = getUserId();
   const user = getStoredUser();
-  return !!(userId && user);
+  const token = getUserToken();
+  return !!(user && token);
 };
 
 /**
- * Admin authentication is session-only and never persisted to localStorage.
- * The admin code is verified client-side against REACT_APP_ADMIN_CODE.
+ * Store short-lived admin session token in sessionStorage.
  */
-export const setAdminAuthenticated = (_authenticated = true) => {
-  // Intentionally a no-op: admin auth lives in React state only (App.js)
+export const storeAdminSession = (sessionData) => {
+  const token = sessionData?.token;
+  if (!token) return;
+  sessionStorage.setItem(AUTH_STORAGE_KEYS.ADMIN_TOKEN, token);
+};
+
+export const clearAdminSession = () => {
+  sessionStorage.removeItem(AUTH_STORAGE_KEYS.ADMIN_TOKEN);
+};
+
+export const isAdminAuthenticated = () => {
+  return !!getAdminToken();
 };
 
 /**
@@ -99,19 +93,18 @@ export const setAdminAuthenticated = (_authenticated = true) => {
  */
 export const validateUserSession = () => {
   const user = getStoredUser();
-  const userId = getUserId();
+  const token = getUserToken();
   
-  if (!user || !userId) {
+  if (!user || !token) {
     clearUserSession();
     return null;
   }
   
-  // Ensure consistency between stored user and userId
-  if (user.id.toString() !== userId) {
-    console.warn('User session inconsistency detected, cleaning up...');
+  if (!user.id) {
+    console.warn('Invalid stored user session detected, cleaning up...');
     clearUserSession();
     return null;
   }
   
   return user;
-}; 
+};
