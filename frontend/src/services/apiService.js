@@ -1,13 +1,28 @@
 import axios from 'axios';
-import { ENDPOINTS } from '../config/api';
+import { BASE_URL, ENDPOINTS } from '../config/api';
+import { getAdminToken, getUserToken } from '../utils/auth';
 
 // Create axios instance with improved configuration
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001',
+  baseURL: BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+apiClient.interceptors.request.use((config) => {
+  const nextConfig = { ...config };
+  const userToken = getUserToken();
+
+  if (userToken && !nextConfig.headers?.Authorization) {
+    nextConfig.headers = {
+      ...nextConfig.headers,
+      Authorization: `Bearer ${userToken}`,
+    };
+  }
+
+  return nextConfig;
 });
 
 apiClient.interceptors.response.use(
@@ -17,6 +32,20 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+const getAdminAuthConfig = () => {
+  const adminToken = getAdminToken();
+
+  if (!adminToken) {
+    throw new Error('Admin authentication required');
+  }
+
+  return {
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+    },
+  };
+};
 
 // API Service class
 class ApiService {
@@ -28,6 +57,11 @@ class ApiService {
 
   async register(userData) {
     const response = await apiClient.post(ENDPOINTS.REGISTER, userData);
+    return response.data;
+  }
+
+  async adminLogin(code) {
+    const response = await apiClient.post(ENDPOINTS.ADMIN_LOGIN, { code });
     return response.data;
   }
 
@@ -47,7 +81,6 @@ class ApiService {
     return response.data;
   }
 
-  // Get drivers currently delivering orders for a specific user
   async getUserDeliveryDrivers(userId) {
     const orders = await this.getUserOrders(userId);
 
@@ -82,27 +115,22 @@ class ApiService {
       };
     });
 
-    const uniqueDrivers = drivers.reduce((acc, driver) => {
+    return drivers.reduce((acc, driver) => {
       if (!acc.find(d => d.id === driver.id)) {
         acc.push(driver);
       }
       return acc;
     }, []);
-
-    return uniqueDrivers;
   }
 
-  // Get all drivers (admin only - requires password)
-  async getAllDriversAdmin(password) {
+  async getAllDriversAdmin() {
     try {
-      const response = await apiClient.get(ENDPOINTS.DELIVERY_DRIVERS_ADMIN, {
-        headers: { 'Authorization': `Bearer ${password}` }
-      });
+      const response = await apiClient.get(ENDPOINTS.DELIVERY_DRIVERS_ADMIN, getAdminAuthConfig());
       return response.data;
     } catch (error) {
       console.error('Error fetching all drivers:', error);
-      if (error.response?.status === 401) {
-        throw new Error('Invalid admin password');
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Admin authentication required');
       }
       throw error;
     }
@@ -168,6 +196,55 @@ class ApiService {
     const response = await apiClient.post(ENDPOINTS.SAVED_LOCATIONS, locationData);
     return response.data;
   }
+
+  // Admin services
+  async getAdminOrders() {
+    const response = await apiClient.get(ENDPOINTS.ADMIN_ORDERS, getAdminAuthConfig());
+    return response.data;
+  }
+
+  async updateAdminOrderStatus(orderId, status) {
+    const response = await apiClient.patch(
+      ENDPOINTS.ORDER_STATUS(orderId),
+      { status },
+      getAdminAuthConfig()
+    );
+    return response.data;
+  }
+
+  async deleteAdminOrder(orderId) {
+    const response = await apiClient.delete(`/api/orders/${orderId}`, getAdminAuthConfig());
+    return response.data;
+  }
+
+  async getAdminReservations() {
+    const response = await apiClient.get(ENDPOINTS.ADMIN_RESERVATIONS, getAdminAuthConfig());
+    return response.data;
+  }
+
+  async updateAdminReservationStatus(reservationId, status) {
+    const response = await apiClient.patch(
+      ENDPOINTS.RESERVATION_STATUS(reservationId),
+      { status },
+      getAdminAuthConfig()
+    );
+    return response.data;
+  }
+
+  async deleteAdminReservation(reservationId) {
+    const response = await apiClient.delete(`/api/reservations/${reservationId}`, getAdminAuthConfig());
+    return response.data;
+  }
+
+  async getAdminUsers() {
+    const response = await apiClient.get(ENDPOINTS.ADMIN_USERS, getAdminAuthConfig());
+    return response.data;
+  }
+
+  async getAdminUserDetails(userId) {
+    const response = await apiClient.get(ENDPOINTS.USER_DETAILS(userId), getAdminAuthConfig());
+    return response.data;
+  }
 }
 
 // Export singleton instance
@@ -178,6 +255,7 @@ export default apiService;
 export const {
   login,
   register,
+  adminLogin,
   createOrder,
   getUserOrders,
   createReservation,
@@ -191,5 +269,13 @@ export const {
   getAllDriversAdmin,
   checkDeliveryAvailability,
   getSavedLocations,
-  saveLocation
+  saveLocation,
+  getAdminOrders,
+  updateAdminOrderStatus,
+  deleteAdminOrder,
+  getAdminReservations,
+  updateAdminReservationStatus,
+  deleteAdminReservation,
+  getAdminUsers,
+  getAdminUserDetails
 } = apiService;

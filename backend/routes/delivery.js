@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { attachAuth, requireAdmin } = require('../middleware/auth');
 const { db } = require('../db');
-
-const ADMIN_PASSWORD = process.env.ADMIN_CODE;
 
 // Simple distance calculation function (Haversine formula)
 function calculateDistance(lat1, lng1, lat2, lng2) {
@@ -17,7 +16,7 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 }
 
 // Update driver location
-router.post('/drivers/:driverId/location', async (req, res) => {
+router.post('/drivers/:driverId/location', requireAdmin, async (req, res) => {
     try {
         const { driverId } = req.params;
         const { lat, lng } = req.body;
@@ -35,12 +34,9 @@ router.post('/drivers/:driverId/location', async (req, res) => {
 });
 
 // Get drivers (with admin password protection for full details)
-router.get('/drivers', async (req, res) => {
+router.get('/drivers', attachAuth, async (req, res) => {
     try {
-        const authHeader = req.headers['authorization'] || '';
-        const password = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-        if (password === ADMIN_PASSWORD) {
+        if (req.auth?.role === 'admin') {
             const result = await db.query(`
                 SELECT 
                     id, name, is_available, is_online, 
@@ -76,15 +72,8 @@ router.get('/drivers/available', async (req, res) => {
 });
 
 // Get all drivers with full details (admin endpoint)
-router.get('/drivers/admin/all', async (req, res) => {
+router.get('/drivers/admin/all', requireAdmin, async (req, res) => {
     try {
-        const authHeader = req.headers['authorization'] || '';
-        const password = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-        if (password !== ADMIN_PASSWORD) {
-            return res.status(401).json({ error: 'Admin access required' });
-        }
-
         const result = await db.query(`
             SELECT 
                 d.*,
@@ -129,7 +118,7 @@ router.get('/active', async (req, res) => {
 });
 
 // Cleanup for shutdown
-router.post('/cleanup-for-shutdown', async (req, res) => {
+router.post('/cleanup-for-shutdown', requireAdmin, async (req, res) => {
     try {
         console.log('🧹 Cleaning up delivery system for shutdown...');
         

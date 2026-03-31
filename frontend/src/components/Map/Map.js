@@ -6,7 +6,7 @@ import { useMapControls } from '../../hooks/useMapControls';
 import { useStoreData } from '../../hooks/useStoreData';
 import { createSimpleIcons } from '../../utils/simpleIcons';
 import { calculateDistance } from '../../utils/mapUtils';
-import { isAuthenticated } from '../../utils/auth';
+import { clearAdminSession, isAdminAuthenticated, isAuthenticated, storeAdminSession } from '../../utils/auth';
 import SavedLocations from '../SavedLocations/SavedLocations';
 import SaveLocationModal from '../SavedLocations/SaveLocationModal';
 import EnhancedSearchInput from '../EnhancedSearchInput/EnhancedSearchInput';
@@ -214,7 +214,7 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
   const [drivers, setDrivers] = useState([]);
   const [driversLoading, setDriversLoading] = useState(false);
   const [driversError, setDriversError] = useState(null);
-  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(isAdminAuthenticated());
   const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
 
   const icons = createSimpleIcons();
@@ -257,7 +257,7 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
       let fetchedDrivers = [];
       
       if (isAdminMode) {
-        fetchedDrivers = await apiService.getAllDriversAdmin(process.env.REACT_APP_ADMIN_CODE);
+        fetchedDrivers = await apiService.getAllDriversAdmin();
       } else if (user?.id) {
         fetchedDrivers = await apiService.getUserDeliveryDrivers(user.id);
       }
@@ -266,7 +266,8 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     } catch (err) {
       console.error('Error fetching drivers:', err);
       setDriversError(err.message);
-      if (err.message.includes('Invalid admin password')) {
+      if (err.message.includes('Admin authentication required')) {
+        clearAdminSession();
         setIsAdminMode(false);
         setShowAdminPasswordModal(false);
       }
@@ -280,6 +281,7 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     if (!isAdminMode) {
       setShowAdminPasswordModal(true);
     } else {
+      clearAdminSession();
       setIsAdminMode(false);
     }
   }, [isAdminMode]);
@@ -289,12 +291,13 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     try {
       setDriversLoading(true);
       setDriversError(null);
-      await apiService.getAllDriversAdmin(password);
+      const adminSession = await apiService.adminLogin(password);
+      storeAdminSession(adminSession);
       setIsAdminMode(true);
       setShowAdminPasswordModal(false);
     } catch (err) {
       console.error('Admin authentication failed:', err);
-      setDriversError(err.message || 'Invalid admin password');
+      setDriversError(err.response?.data?.error || err.message || 'Invalid admin password');
     } finally {
       setDriversLoading(false);
     }
@@ -424,13 +427,17 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
       try {
         let updatedDrivers = [];
         if (isAdminMode) {
-          updatedDrivers = await apiService.getAllDriversAdmin(process.env.REACT_APP_ADMIN_CODE);
+          updatedDrivers = await apiService.getAllDriversAdmin();
         } else if (user?.id) {
           updatedDrivers = await apiService.getUserDeliveryDrivers(user.id);
         }
         setDrivers(updatedDrivers);
       } catch (err) {
         console.error('Error refreshing driver positions:', err);
+        if (err.message?.includes('Admin authentication required')) {
+          clearAdminSession();
+          setIsAdminMode(false);
+        }
       }
     };
 

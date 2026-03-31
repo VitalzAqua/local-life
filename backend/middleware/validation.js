@@ -94,20 +94,15 @@ const validateUserLogin = (req, res, next) => {
 };
 
 const validateOrderCreation = (req, res, next) => {
-  const { user_id, store_id, items, total_amount } = req.body;
+  const { store_id, items, total_amount } = req.body;
   
   // Check required fields
-  const missing = validateRequired(['user_id', 'store_id', 'items', 'total_amount'], req.body);
+  const missing = validateRequired(['store_id', 'items', 'total_amount'], req.body);
   if (missing) {
     return res.status(400).json({ 
       error: ERROR_MESSAGES.REQUIRED_FIELDS,
       missing_fields: missing
     });
-  }
-  
-  // Validate user_id and store_id
-  if (!validatePositiveInteger(user_id)) {
-    return res.status(400).json({ error: 'Invalid user ID' });
   }
   
   if (!validatePositiveInteger(store_id)) {
@@ -156,20 +151,15 @@ const validateOrderCreation = (req, res, next) => {
 };
 
 const validateReservationCreation = (req, res, next) => {
-  const { user_id, store_id, reservation_date, party_size } = req.body;
+  const { store_id, reservation_date, party_size } = req.body;
   
   // Check required fields
-  const missing = validateRequired(['user_id', 'store_id', 'reservation_date', 'party_size'], req.body);
+  const missing = validateRequired(['store_id', 'reservation_date', 'party_size'], req.body);
   if (missing) {
     return res.status(400).json({ 
       error: ERROR_MESSAGES.REQUIRED_FIELDS,
       missing_fields: missing
     });
-  }
-  
-  // Validate user_id and store_id
-  if (!validatePositiveInteger(user_id)) {
-    return res.status(400).json({ error: 'Invalid user ID' });
   }
   
   if (!validatePositiveInteger(store_id)) {

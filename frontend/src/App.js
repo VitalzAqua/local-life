@@ -10,9 +10,7 @@ import UserLocationModal from './components/UserLocationModal/UserLocationModal'
 import { 
   validateUserSession, 
   clearUserSession, 
-  storeUserSession,
-  setAdminAuthenticated,
-  AUTH_STORAGE_KEYS
+  clearAdminSession
 } from './utils/auth';
 
 function App() {
@@ -25,9 +23,6 @@ function App() {
   const [userAddress, setUserAddress] = useState('');
 
   useEffect(() => {
-    // Clear any persisted admin auth from previous sessions
-    localStorage.removeItem(AUTH_STORAGE_KEYS.ADMIN_AUTH);
-
     // Check if user has previously set their location
     const savedLocation = localStorage.getItem('userLocation');
     const savedAddress = localStorage.getItem('userAddress');
@@ -57,11 +52,11 @@ function App() {
 
   const handleLogin = (userData) => {
     setUser(userData);
-    storeUserSession(userData);
   };
 
   const handleLogout = () => {
     clearUserSession();
+    clearAdminSession();
     setUser(null);
     setSidebarView(null);
   };
@@ -83,7 +78,6 @@ function App() {
   };
 
   const handleAdminLogin = () => {
-    setAdminAuthenticated(true);
     setShowAdminLogin(false);
     setSidebarView('admin');
     setSelectedStore(null);
@@ -96,8 +90,7 @@ function App() {
   const handleCloseSidebar = () => {
     setSidebarView(null);
     setSelectedStore(null);
-    // Reset admin authentication when closing sidebar for security
-    setAdminAuthenticated(false);
+    clearAdminSession();
   };
 
   const handleLocationSet = (locationData) => {

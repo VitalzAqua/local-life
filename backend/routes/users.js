@@ -3,7 +3,8 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const { SECURITY } = require('../config/constants');
 const { validateUserRegistration, validateUserLogin } = require('../middleware/validation');
-const adminAuth = require('../middleware/adminAuth');
+const { requireAdmin } = require('../middleware/auth');
+const { issueAdminToken, issueUserToken } = require('../utils/authTokens');
 const { db } = require('../db');
 
 // Register new user
@@ -16,10 +17,16 @@ router.post('/register', validateUserRegistration, async (req, res) => {
             'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name',
             [email, hashedPassword, name]
         );
-        
-        res.json(result.rows[0]);
+
+        const user = result.rows[0];
+        const token = issueUserToken(user);
+
+        res.status(201).json({ user, token });
     } catch (error) {
         console.error('Error registering user:', error);
+        if (error.code === '23505') {
+            return res.status(409).json({ error: 'User with this email already exists' });
+        }
         res.status(500).json({ error: 'Failed to register user' });
     }
 });
@@ -47,15 +54,40 @@ router.post('/login', validateUserLogin, async (req, res) => {
         
         // Don't send password hash to client
         delete user.password_hash;
-        res.json(user);
+        const token = issueUserToken(user);
+        res.json({ user, token });
     } catch (error) {
         console.error('Error logging in:', error);
         res.status(500).json({ error: 'Failed to login' });
     }
 });
 
+// Admin login
+router.post('/admin/login', async (req, res) => {
+    try {
+        const { code } = req.body;
+
+        if (!SECURITY.ADMIN_CODE) {
+            return res.status(503).json({ error: 'Admin access is not configured' });
+        }
+
+        if (!code || code !== SECURITY.ADMIN_CODE) {
+            return res.status(401).json({ error: 'Invalid admin code' });
+        }
+
+        const token = issueAdminToken();
+        res.json({
+            admin: { role: 'admin' },
+            token
+        });
+    } catch (error) {
+        console.error('Error logging in admin:', error);
+        res.status(500).json({ error: 'Failed to login as admin' });
+    }
+});
+
 // Admin: Get all users
-router.get('/admin/all', adminAuth, async (req, res) => {
+router.get('/admin/all', requireAdmin, async (req, res) => {
     try {
         const result = await db.query(`
             SELECT 
@@ -81,7 +113,7 @@ router.get('/admin/all', adminAuth, async (req, res) => {
 });
 
 // Admin: Get user details with orders and reservations
-router.get('/admin/:userId/details', adminAuth, async (req, res) => {
+router.get('/admin/:userId/details', requireAdmin, async (req, res) => {
     try {
         const { userId } = req.params;
         

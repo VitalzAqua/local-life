@@ -1,13 +1,21 @@
+const parseListEnv = (value = '') =>
+  String(value)
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+
+const normalizeUrl = (value = '') => String(value).trim().replace(/\/+$/, '');
+
 // Backend configuration constants
 
 // Server configuration
 const SERVER_CONFIG = {
   PORT: process.env.PORT || 3001,
   NODE_ENV: process.env.NODE_ENV || 'development',
-  CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  CORS_ORIGINS: parseListEnv(process.env.CORS_ORIGIN),
   /** Base URL for driver-assignment-service (no trailing slash). */
   DRIVER_ASSIGNMENT_SERVICE_URL:
-    process.env.DRIVER_ASSIGNMENT_SERVICE_URL || 'http://localhost:3002'
+    normalizeUrl(process.env.DRIVER_ASSIGNMENT_SERVICE_URL || 'http://localhost:3002')
 };
 
 // Database configuration

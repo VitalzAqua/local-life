@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import apiService from '../services/apiService';
+import { storeAdminSession } from '../utils/auth';
 import styles from './AdminLogin.module.css';
 
 const AdminLogin = ({ onAdminLogin, onClose }) => {
@@ -6,22 +8,21 @@ const AdminLogin = ({ onAdminLogin, onClose }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const ADMIN_CODE = process.env.REACT_APP_ADMIN_CODE;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    setTimeout(() => {
-      if (ADMIN_CODE && adminCode === ADMIN_CODE) {
-        onAdminLogin();
-      } else {
-        setError('Invalid admin code. Access denied.');
-        setAdminCode('');
-      }
+    try {
+      const adminSession = await apiService.adminLogin(adminCode);
+      storeAdminSession(adminSession);
+      onAdminLogin(adminSession);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Invalid admin code. Access denied.');
+      setAdminCode('');
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (

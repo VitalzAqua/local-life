@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { requireAuth, requireSameUserOrAdmin, requireUser } = require('../middleware/auth');
 // Use the global db object created in index.js
 const { db } = require('../db');
 
 // Get all saved locations for a user
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', requireAuth, requireSameUserOrAdmin('userId'), async (req, res) => {
     try {
         const { userId } = req.params;
         
@@ -34,13 +35,14 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Save a new location
-router.post('/', async (req, res) => {
+router.post('/', requireUser, async (req, res) => {
     try {
-        const { user_id, store_id, location_name, notes } = req.body;
+        const { store_id, location_name, notes } = req.body;
+        const user_id = Number(req.auth.sub);
         
-        if (!user_id || !store_id || !location_name) {
+        if (!store_id || !location_name) {
             return res.status(400).json({ 
-                error: 'User ID, store ID, and location name are required' 
+                error: 'Store ID and location name are required' 
             });
         }
         
@@ -61,14 +63,15 @@ router.post('/', async (req, res) => {
 });
 
 // Update a saved location
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireUser, async (req, res) => {
     try {
         const { id } = req.params;
-        const { location_name, notes, user_id } = req.body;
+        const { location_name, notes } = req.body;
+        const user_id = Number(req.auth.sub);
         
-        if (!location_name || !user_id) {
+        if (!location_name) {
             return res.status(400).json({ 
-                error: 'Location name and user ID are required' 
+                error: 'Location name is required' 
             });
         }
         
@@ -91,14 +94,10 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a saved location
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireUser, async (req, res) => {
     try {
         const { id } = req.params;
-        const { user_id } = req.body;
-        
-        if (!user_id) {
-            return res.status(400).json({ error: 'User ID is required' });
-        }
+        const user_id = Number(req.auth.sub);
         
         const result = await db.query(`
             DELETE FROM saved_locations 
@@ -118,7 +117,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Check if a location is saved by user
-router.get('/check/:userId/:storeId', async (req, res) => {
+router.get('/check/:userId/:storeId', requireAuth, requireSameUserOrAdmin('userId'), async (req, res) => {
     try {
         const { userId, storeId } = req.params;
         

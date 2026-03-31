@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { RESERVATION_STATUS } = require('../config/constants');
 const { validateReservationCreation, validateStatusUpdate } = require('../middleware/validation');
-const adminAuth = require('../middleware/adminAuth');
+const { requireAdmin, requireAuth, requireSameUserOrAdmin, requireUser } = require('../middleware/auth');
 const { db } = require('../db');
 
 // Helper function to check if reservation time is within store hours
@@ -15,14 +15,10 @@ const isReservationWithinStoreHours = (reservationDate, storeHours) => {
 };
 
 // Create new reservation
-router.post('/', validateReservationCreation, async (req, res) => {
+router.post('/', requireUser, validateReservationCreation, async (req, res) => {
     try {
-        const { user_id, store_id, reservation_date, party_size, notes } = req.body;
-        
-        // Check if user is authenticated
-        if (!user_id) {
-            return res.status(401).json({ error: 'Authentication required to make reservations' });
-        }
+        const { store_id, reservation_date, party_size, notes } = req.body;
+        const user_id = Number(req.auth.sub);
         
         // Get store information to check hours
         const storeResult = await db.query(
@@ -67,7 +63,7 @@ router.post('/', validateReservationCreation, async (req, res) => {
 });
 
 // Get user's reservations
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', requireAuth, requireSameUserOrAdmin('userId'), async (req, res) => {
     try {
         const { userId } = req.params;
         
@@ -88,7 +84,7 @@ router.get('/user/:userId', async (req, res) => {
 });
 
 // Get store's reservations for a specific date
-router.get('/store/:storeId/date/:date', async (req, res) => {
+router.get('/store/:storeId/date/:date', requireAdmin, async (req, res) => {
     try {
         const { storeId, date } = req.params;
         
@@ -110,7 +106,7 @@ router.get('/store/:storeId/date/:date', async (req, res) => {
 });
 
 // Update reservation status
-router.patch('/:reservationId/status', validateStatusUpdate, async (req, res) => {
+router.patch('/:reservationId/status', requireAdmin, validateStatusUpdate, async (req, res) => {
     try {
         const { reservationId } = req.params;
         const { status } = req.body;
@@ -132,7 +128,7 @@ router.patch('/:reservationId/status', validateStatusUpdate, async (req, res) =>
 });
 
 // Admin route - Get all reservations
-router.get('/admin/all', adminAuth, async (req, res) => {
+router.get('/admin/all', requireAdmin, async (req, res) => {
     try {
         const result = await db.query(
             `SELECT r.*, s.name as store_name, s.attributes->>'address' as store_address,
@@ -151,7 +147,7 @@ router.get('/admin/all', adminAuth, async (req, res) => {
 });
 
 // Delete reservation (Admin only)
-router.delete('/:reservationId', adminAuth, async (req, res) => {
+router.delete('/:reservationId', requireAdmin, async (req, res) => {
     try {
         const { reservationId } = req.params;
         
