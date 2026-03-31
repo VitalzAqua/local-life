@@ -107,7 +107,12 @@ function App() {
         return <OrderHistory user={user} />;
       case 'store':
         return selectedStore ? (
-          <StoreDetails store={selectedStore} user={user} />
+          <StoreDetails
+            store={selectedStore}
+            user={user}
+            currentUserLocation={location}
+            currentUserAddress={userAddress}
+          />
         ) : null;
       case 'admin':
         return <AdminDashboard />;

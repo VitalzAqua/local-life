@@ -20,7 +20,7 @@ const normalizeProducts = (products) => {
     .filter(product => product.name && Number.isFinite(product.price));
 };
 
-const StoreDetails = ({ store, user }) => {
+const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) => {
   const [activeTab, setActiveTab] = useState('products');
   const [cart, setCart] = useState([]);
   const [quantities, setQuantities] = useState({});
@@ -33,9 +33,16 @@ const StoreDetails = ({ store, user }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const [orderType, setOrderType] = useState('eat_in');
+  const [deliveryAddressMode, setDeliveryAddressMode] = useState('current');
   const [customerLocation, setCustomerLocation] = useState('');
   const [customerLocationData, setCustomerLocationData] = useState(null);
   const [deliveryAvailable, setDeliveryAvailable] = useState(true);
+
+  const hasCurrentDeliveryAddress = Boolean(
+    currentUserAddress &&
+    currentUserLocation?.lat != null &&
+    currentUserLocation?.lng != null
+  );
 
   useEffect(() => {
     const products = normalizeProducts(store?.attributes?.products);
@@ -78,6 +85,33 @@ const StoreDetails = ({ store, user }) => {
     checkDelivery();
   }, [store]);
 
+  useEffect(() => {
+    if (orderType !== 'delivery') {
+      return;
+    }
+
+    if (deliveryAddressMode === 'current') {
+      if (!hasCurrentDeliveryAddress) {
+        setCustomerLocation('');
+        setCustomerLocationData(null);
+        return;
+      }
+
+      setCustomerLocation(currentUserAddress);
+      setCustomerLocationData({
+        address: currentUserAddress,
+        lat: currentUserLocation.lat,
+        lng: currentUserLocation.lng
+      });
+    }
+  }, [
+    orderType,
+    deliveryAddressMode,
+    hasCurrentDeliveryAddress,
+    currentUserAddress,
+    currentUserLocation
+  ]);
+
   // Handle delivery address selection
   const handleDeliveryAddressSelect = (addressData) => {
     setCustomerLocation(addressData.address);
@@ -87,6 +121,25 @@ const StoreDetails = ({ store, user }) => {
       lng: addressData.lng
     });
     setMessage({ type: 'success', text: 'Delivery address set!' });
+  };
+
+  const handleDeliveryAddressModeChange = (mode) => {
+    setDeliveryAddressMode(mode);
+
+    if (mode === 'custom') {
+      setCustomerLocation('');
+      setCustomerLocationData(null);
+      return;
+    }
+
+    if (hasCurrentDeliveryAddress) {
+      setCustomerLocation(currentUserAddress);
+      setCustomerLocationData({
+        address: currentUserAddress,
+        lat: currentUserLocation.lat,
+        lng: currentUserLocation.lng
+      });
+    }
   };
 
   const handleQuantityChange = (productName, delta) => {
@@ -189,8 +242,10 @@ const StoreDetails = ({ store, user }) => {
       
       
       setCart([]);
-      setCustomerLocation('');
-      setCustomerLocationData(null);
+      if (deliveryAddressMode === 'custom') {
+        setCustomerLocation('');
+        setCustomerLocationData(null);
+      }
       setMessage({ type: 'success', text: 'Order placed successfully!' });
     } catch (error) {
       console.error('Error placing order:', error);
@@ -389,7 +444,10 @@ const StoreDetails = ({ store, user }) => {
                   name="orderType"
                   value="delivery"
                   checked={orderType === 'delivery'}
-                  onChange={(e) => setOrderType(e.target.value)}
+                  onChange={(e) => {
+                    setOrderType(e.target.value);
+                    setDeliveryAddressMode(hasCurrentDeliveryAddress ? 'current' : 'custom');
+                  }}
                   disabled={!deliveryAvailable}
                 />
                 <span>Delivery {!deliveryAvailable ? '(No drivers available)' : ''}</span>
@@ -399,29 +457,71 @@ const StoreDetails = ({ store, user }) => {
             {orderType === 'delivery' && (
               <div className={styles.deliveryAddress}>
                 <label className={styles.formLabel}>Delivery Address</label>
-                {customerLocation ? (
+                <div className={styles.deliveryAddressOptions}>
+                  <label className={styles.deliveryAddressOption}>
+                    <input
+                      type="radio"
+                      name="deliveryAddressMode"
+                      value="current"
+                      checked={deliveryAddressMode === 'current'}
+                      onChange={() => handleDeliveryAddressModeChange('current')}
+                      disabled={!hasCurrentDeliveryAddress}
+                    />
+                    <span>Use my current address</span>
+                  </label>
+                  <label className={styles.deliveryAddressOption}>
+                    <input
+                      type="radio"
+                      name="deliveryAddressMode"
+                      value="custom"
+                      checked={deliveryAddressMode === 'custom'}
+                      onChange={() => handleDeliveryAddressModeChange('custom')}
+                    />
+                    <span>Deliver to a different address</span>
+                  </label>
+                </div>
+
+                {deliveryAddressMode === 'current' && hasCurrentDeliveryAddress ? (
                   <div className={styles.locationDisplay}>
                     <span className={styles.locationIcon}>📍</span>
                     <span className={styles.locationText}>{customerLocation}</span>
-                    <button 
-                      type="button"
-                      className={styles.changeAddressButton}
-                      onClick={() => {
-                        setCustomerLocation('');
-                        setCustomerLocationData(null);
-                      }}
-                      title="Change address"
-                    >
-                      Change
-                    </button>
                   </div>
+                ) : null}
+
+                {deliveryAddressMode === 'current' && !hasCurrentDeliveryAddress ? (
+                  <div className={styles.locationStatus}>
+                    <span className={styles.locationIcon}>ℹ️</span>
+                    <span>Set your app location first, or choose a different delivery address.</span>
+                  </div>
+                ) : null}
+
+                {deliveryAddressMode === 'custom' ? (
+                  customerLocation ? (
+                    <div className={styles.locationDisplay}>
+                      <span className={styles.locationIcon}>📍</span>
+                      <span className={styles.locationText}>{customerLocation}</span>
+                      <button 
+                        type="button"
+                        className={styles.changeAddressButton}
+                        onClick={() => {
+                          setCustomerLocation('');
+                          setCustomerLocationData(null);
+                        }}
+                        title="Change address"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <div className={styles.addressInputWrapper}>
+                      <AddressInput
+                        onAddressSelect={handleDeliveryAddressSelect}
+                        placeholder="Enter a different delivery address..."
+                      />
+                    </div>
+                  )
                 ) : (
-                  <div className={styles.addressInputWrapper}>
-                    <AddressInput
-                      onAddressSelect={handleDeliveryAddressSelect}
-                      placeholder="Enter your delivery address..."
-                    />
-                  </div>
+                  null
                 )}
               </div>
             )}
