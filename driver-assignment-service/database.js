@@ -1,14 +1,31 @@
 const { Pool } = require('pg');
 const config = require('./config');
 
+const resolveDatabaseSsl = (connectionString = config.database.connectionString || '') => {
+  if (process.env.DB_SSL === 'true') {
+    return { rejectUnauthorized: false };
+  }
+
+  if (process.env.DB_SSL === 'false') {
+    return false;
+  }
+
+  try {
+    const hostname = new URL(connectionString).hostname;
+    if (['localhost', '127.0.0.1', 'db', 'postgres'].includes(hostname)) {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
+
+  return { rejectUnauthorized: false };
+};
+
 const pool = new Pool({
   connectionString: config.database.connectionString,
   ...config.database.pool,
-  ssl: (() => {
-    const url = config.database.connectionString || '';
-    if (url.includes('localhost') || url.includes('127.0.0.1')) return false;
-    return { rejectUnauthorized: false };
-  })()
+  ssl: resolveDatabaseSsl()
 });
 
 async function initializeDatabase() {

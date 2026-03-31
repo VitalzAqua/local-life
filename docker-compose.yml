@@ -1,0 +1,93 @@
+services:
+  db:
+    platform: linux/amd64
+    image: postgis/postgis:17-3.5-alpine
+    container_name: local-life-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-local_life}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./backend/sql/1000_stores.sql:/docker-entrypoint-initdb.d/02-stores.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-local_life}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  driver-assignment-service:
+    build:
+      context: ./driver-assignment-service
+      dockerfile: Dockerfile
+    container_name: local-life-driver
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-local_life}
+      PORT: 3002
+      NODE_ENV: production
+      DB_POOL_SIZE: 5
+      DB_IDLE_TIMEOUT: 30000
+      DB_CONNECTION_TIMEOUT: 60000
+      DB_SSL: "false"
+      MAX_ASSIGNMENT_DISTANCE: 50
+      ASSIGNMENT_TIMEOUT: 5000
+      ASSIGNMENT_RETRIES: 3
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3002:3002"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: local-life-backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-local_life}
+      PORT: 3001
+      NODE_ENV: production
+      CORS_ORIGIN: http://localhost:3000
+      DRIVER_ASSIGNMENT_SERVICE_URL: http://driver-assignment-service:3002
+      JWT_SECRET: ${JWT_SECRET:-local-life-docker-secret}
+      USER_TOKEN_TTL: 7d
+      ADMIN_TOKEN_TTL: 4h
+      ADMIN_CODE: ${ADMIN_CODE:-local-life-admin}
+      DB_POOL_SIZE: 10
+      DB_IDLE_TIMEOUT: 30000
+      DB_CONNECTION_TIMEOUT: 60000
+      DB_SSL: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+      driver-assignment-service:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: local-life-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:

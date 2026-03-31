@@ -24,6 +24,43 @@ Optional sample data:
 npm run db:seed:stores
 ```
 
+## Docker
+
+If you want to run the full stack with Docker instead of local Node/Postgres installs:
+
+```bash
+docker compose up --build
+```
+
+Or from the repo root:
+
+```bash
+npm run docker:up
+```
+
+This starts:
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:3001`
+- Driver assignment service: `http://localhost:3002`
+- PostGIS database: `localhost:5432`
+
+Notes:
+
+- The database is initialized automatically from [`backend/sql/schema.sql`](./backend/sql/schema.sql) and [`backend/sql/1000_stores.sql`](./backend/sql/1000_stores.sql) on first startup.
+- To start from a completely fresh Docker database, run:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+- If you want to customize the Docker credentials or secrets, copy [`.env.docker.example`](./.env.docker.example) and run:
+
+```bash
+docker compose --env-file .env.docker up --build
+```
+
 ## Features
 
 - Interactive Leaflet map centered on the user's location

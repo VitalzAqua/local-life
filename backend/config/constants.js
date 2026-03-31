@@ -6,6 +6,27 @@ const parseListEnv = (value = '') =>
 
 const normalizeUrl = (value = '') => String(value).trim().replace(/\/+$/, '');
 
+const resolveDatabaseSsl = (connectionString = process.env.DATABASE_URL || '') => {
+  if (process.env.DB_SSL === 'true') {
+    return { rejectUnauthorized: false };
+  }
+
+  if (process.env.DB_SSL === 'false') {
+    return false;
+  }
+
+  try {
+    const hostname = new URL(connectionString).hostname;
+    if (['localhost', '127.0.0.1', 'db', 'postgres'].includes(hostname)) {
+      return false;
+    }
+  } catch (error) {
+    return false;
+  }
+
+  return { rejectUnauthorized: false };
+};
+
 // Backend configuration constants
 
 // Server configuration
@@ -24,11 +45,7 @@ const DB_CONFIG = {
   POOL_SIZE: parseInt(process.env.DB_POOL_SIZE) || 10,
   IDLE_TIMEOUT: parseInt(process.env.DB_IDLE_TIMEOUT) || 30000,
   CONNECTION_TIMEOUT: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 60000, // Increased to 60 seconds
-  SSL: (() => {
-    const url = process.env.DATABASE_URL || '';
-    if (url.includes('localhost') || url.includes('127.0.0.1')) return false;
-    return { rejectUnauthorized: false };
-  })(),
+  SSL: resolveDatabaseSsl(),
   // Additional connection settings for reliability
   query_timeout: 30000,
   statement_timeout: 30000,
