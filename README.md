@@ -4,6 +4,8 @@ LocalLife is a full-stack local commerce platform focused on discovery, reservat
 
 This repository is designed as a portfolio project that demonstrates end-to-end product development: UI work, API design, relational data modeling, geospatial queries with PostGIS, and service-to-service coordination for delivery workflows.
 
+Live demo: [https://local-life-frontend.vercel.app](https://local-life-frontend.vercel.app)
+
 ## Features
 
 - Interactive Leaflet map centered on the user's location

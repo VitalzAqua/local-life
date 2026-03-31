@@ -2,7 +2,6 @@ import axios from 'axios';
 import { BASE_URL, ENDPOINTS } from '../config/api';
 import { getAdminToken, getUserToken } from '../utils/auth';
 
-// Create axios instance with improved configuration
 const apiClient = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
@@ -47,9 +46,7 @@ const getAdminAuthConfig = () => {
   };
 };
 
-// API Service class
 class ApiService {
-  // Auth services
   async login(credentials) {
     const response = await apiClient.post(ENDPOINTS.LOGIN, credentials);
     return response.data;
@@ -65,7 +62,6 @@ class ApiService {
     return response.data;
   }
 
-  // Order services
   async createOrder(orderData) {
     const response = await apiClient.post(ENDPOINTS.ORDERS, orderData);
     return response.data;
@@ -136,7 +132,6 @@ class ApiService {
     }
   }
 
-  // Reservation services
   async createReservation(reservationData) {
     const response = await apiClient.post(ENDPOINTS.RESERVATIONS, reservationData);
     return response.data;
@@ -147,7 +142,6 @@ class ApiService {
     return response.data;
   }
 
-  // Store/Category services
   async searchStores(query, categories = []) {
     const params = { q: query, categories: categories.join(',') };
     const response = await apiClient.get(ENDPOINTS.SEARCH, { params });
@@ -170,7 +164,6 @@ class ApiService {
     }
   }
 
-  // Delivery services
   async getAvailableDrivers() {
     const response = await apiClient.get(ENDPOINTS.DELIVERY_DRIVERS);
     return response.data;
@@ -186,7 +179,6 @@ class ApiService {
     }
   }
 
-  // Saved locations
   async getSavedLocations(userId) {
     const response = await apiClient.get(ENDPOINTS.USER_SAVED_LOCATIONS(userId));
     return response.data;
@@ -197,7 +189,6 @@ class ApiService {
     return response.data;
   }
 
-  // Admin services
   async getAdminOrders() {
     const response = await apiClient.get(ENDPOINTS.ADMIN_ORDERS, getAdminAuthConfig());
     return response.data;
@@ -247,11 +238,9 @@ class ApiService {
   }
 }
 
-// Export singleton instance
 const apiService = new ApiService();
 export default apiService;
 
-// Named exports for components that import specific methods
 export const {
   login,
   register,

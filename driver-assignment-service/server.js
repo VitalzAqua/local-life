@@ -5,11 +5,9 @@ const driverAssignmentService = require('./driverAssignmentService');
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'healthy', 
@@ -23,7 +21,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Get all drivers with their current deliveries
 app.get('/drivers', async (req, res) => {
   try {
     const drivers = await driverAssignmentService.getDriversWithDeliveries();
@@ -41,7 +38,7 @@ app.get('/drivers', async (req, res) => {
   }
 });
 
-// Get available drivers (legacy compatibility)
+// Alias endpoint for clients that only need currently available drivers.
 app.get('/drivers/available', async (req, res) => {
   try {
     const drivers = await driverAssignmentService.getDriversWithDeliveries();
@@ -63,7 +60,6 @@ app.get('/drivers/available', async (req, res) => {
   }
 });
 
-// Get driver statistics
 app.get('/drivers/:id/stats', async (req, res) => {
   try {
     const driverId = parseInt(req.params.id);
@@ -89,12 +85,10 @@ app.get('/drivers/:id/stats', async (req, res) => {
   }
 });
 
-// Assign driver to order with route optimization
 app.post('/assign', async (req, res) => {
   try {
     const { orderId, storeLocation, customerLocation } = req.body;
     
-    // Validate request
     if (!orderId || !storeLocation) {
       return res.status(400).json({
         success: false,
@@ -102,7 +96,6 @@ app.post('/assign', async (req, res) => {
       });
     }
 
-    // Validate location format
     if ((!storeLocation.lat && !storeLocation.latitude) || (!storeLocation.lng && !storeLocation.longitude)) {
       return res.status(400).json({
         success: false,
@@ -112,7 +105,6 @@ app.post('/assign', async (req, res) => {
 
     console.log(`📨 Optimized assignment request received for order ${orderId}`);
     
-    // Process assignment with route optimization
     const result = await driverAssignmentService.processAssignment({
       orderId,
       storeLocation,
@@ -144,7 +136,7 @@ app.post('/assign', async (req, res) => {
   }
 });
 
-// Queue assignment (for high-load scenarios)
+// Queue-based assignment endpoint.
 app.post('/assign/queue', async (req, res) => {
   try {
     const { orderId, storeLocation, customerLocation } = req.body;

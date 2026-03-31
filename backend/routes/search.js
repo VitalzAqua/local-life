@@ -4,7 +4,6 @@ const { TORONTO_BOUNDS, API_LIMITS } = require('../config/constants');
 const { validateSearchQuery } = require('../middleware/validation');
 const { db } = require('../db');
 
-// Search stores within Toronto boundaries
 router.get('/', validateSearchQuery, async (req, res) => {
   const query = req.query.q || '';
   const { categories, limit } = req.query;
@@ -63,7 +62,6 @@ router.get('/', validateSearchQuery, async (req, res) => {
   }
 });
 
-// Global search — no geographic boundary restriction
 router.get('/global', validateSearchQuery, async (req, res) => {
   const query = req.query.q || '';
   const { categories, limit } = req.query;
@@ -136,7 +134,6 @@ router.get('/global', validateSearchQuery, async (req, res) => {
   }
 });
 
-// Search nearby stores by brand name
 router.get('/nearby-brand', validateSearchQuery, async (req, res) => {
   const { brand, lat, lng, radius = 10 } = req.query;
 
@@ -183,7 +180,6 @@ router.get('/nearby-brand', validateSearchQuery, async (req, res) => {
   }
 });
 
-// Debug endpoint — counts stores in DB
 router.get('/debug/stores', async (req, res) => {
   try {
     const total = await db.query('SELECT COUNT(*) FROM stores');

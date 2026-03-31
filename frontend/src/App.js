@@ -23,7 +23,6 @@ function App() {
   const [userAddress, setUserAddress] = useState('');
 
   useEffect(() => {
-    // Check if user has previously set their location
     const savedLocation = localStorage.getItem('userLocation');
     const savedAddress = localStorage.getItem('userAddress');
     
@@ -34,15 +33,12 @@ function App() {
         setUserAddress(savedAddress);
       } catch (error) {
         console.error('Error parsing saved location:', error);
-        // Show location modal if saved data is corrupted
         setShowLocationModal(true);
       }
     } else {
-      // Show location modal for first-time users
       setShowLocationModal(true);
     }
 
-    // Validate and restore user session
     const validUser = validateUserSession();
     if (validUser) {
       setUser(validUser);
@@ -133,7 +129,6 @@ function App() {
     }
   };
 
-  // If user not authenticated, show auth component
   if (!user) {
     return (
       <div className="App" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -154,7 +149,6 @@ function App() {
     );
   }
 
-  // If location not available, show loading (but not the modal)
   if (!location && !showLocationModal) {
     return (
       <div className="App" style={{ 
@@ -210,7 +204,6 @@ function App() {
         )}
       </Layout>
 
-      {/* User Location Modal */}
       <UserLocationModal
         isOpen={showLocationModal}
         onClose={() => setShowLocationModal(false)}
@@ -218,7 +211,6 @@ function App() {
         title={location ? "Change Your Location" : "Set Your Location"}
       />
 
-      {/* Admin Login Modal */}
       {showAdminLogin && (
         <div className="modal-overlay">
           <div className="modal-content">

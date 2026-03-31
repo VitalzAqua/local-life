@@ -15,7 +15,6 @@ const Layout = ({
 }) => {
       return (
       <div className={styles.appLayout}>
-        {/* Simplified Header */}
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <h1 className={styles.headerTitle}>Local Life Platform</h1>
@@ -63,14 +62,11 @@ const Layout = ({
           )}
         </header>
 
-        {/* Main Content Area */}
         <main className={styles.mainContent}>
-          {/* Map Section */}
           <div className={styles.mapSection}>
             {children}
           </div>
 
-          {/* Sidebar */}
           {sidebarContent && (
             <aside className={styles.sidebar}>
               <div className={styles.sidebarHeader}>

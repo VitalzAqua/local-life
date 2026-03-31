@@ -13,18 +13,12 @@ import EnhancedSearchInput from '../EnhancedSearchInput/EnhancedSearchInput';
 import apiService from '../../services/apiService';
 import styles from './Map.module.css';
 
-
-// Distance calculation is now imported from utils
-
-// Simplified map updater using Leaflet's built-in methods
 function MapUpdater({ stores, allStores, userLocation, radius, hasSearchResults, selectedLocation, onStoreSelect, icons }) {
   const map = useMap();
   
-  // Center map on user location when radius changes (but not when searching)
   useEffect(() => {
     if (!userLocation || hasSearchResults) return;
     
-    // If a radius is selected and we're not showing search results, center on user location
     if (radius && radius !== 'all') {
       map.setView([userLocation.lat, userLocation.lng], 13, {
         animate: true,
@@ -33,10 +27,8 @@ function MapUpdater({ stores, allStores, userLocation, radius, hasSearchResults,
     }
   }, [map, userLocation, radius, hasSearchResults]);
   
-  // Navigate to selected saved location
   useEffect(() => {
     if (selectedLocation) {
-      // Use more precise coordinates with setView for better centering
       const lat = parseFloat(selectedLocation.lat);
       const lng = parseFloat(selectedLocation.lng);
       
@@ -45,35 +37,28 @@ function MapUpdater({ stores, allStores, userLocation, radius, hasSearchResults,
         duration: 0.8
       });
       
-      // Find and open the marker popup for the selected location immediately
       const showPopup = () => {
-        // Parse coordinates first
         const targetLat = parseFloat(selectedLocation.lat);
         const targetLng = parseFloat(selectedLocation.lng);
         
-        // First try to find the matching store in current stores
         let matchingStore = allStores.find(store => 
           Math.abs(parseFloat(store.lat) - targetLat) < 0.00001 && 
           Math.abs(parseFloat(store.lng) - targetLng) < 0.00001
         );
         
-        // If not found in current stores, use the store data from saved location
         if (!matchingStore && selectedLocation.storeData) {
           matchingStore = selectedLocation.storeData;
         }
         
         if (matchingStore && onStoreSelect) {
-          // Trigger store selection (opens store details)
           onStoreSelect(matchingStore);
         }
         
-        // Also open the map popup - first try to find existing marker
         let foundMarker = false;
         
         map.eachLayer((layer) => {
           if (layer instanceof L.Marker) {
             const { lat, lng } = layer.getLatLng();
-            // Check if this marker matches the selected location (with more precise tolerance)
             if (Math.abs(lat - targetLat) < 0.00001 && 
                 Math.abs(lng - targetLng) < 0.00001) {
               layer.openPopup();
@@ -82,13 +67,11 @@ function MapUpdater({ stores, allStores, userLocation, radius, hasSearchResults,
           }
         });
         
-        // If no marker found (store filtered out), create a temporary marker with popup
         if (!foundMarker && matchingStore) {
           const tempMarker = L.marker([targetLat, targetLng], {
             icon: icons[matchingStore.category?.toLowerCase()] || icons.default
           }).addTo(map);
 
-          // Use a closure-bound click handler — no global window pollution
           const handleTempMarkerClick = () => {
             onStoreSelect(matchingStore);
             map.removeLayer(tempMarker);
@@ -113,28 +96,22 @@ function MapUpdater({ stores, allStores, userLocation, radius, hasSearchResults,
         }
       };
       
-      // Call showPopup immediately
       showPopup();
     }
   }, [map, selectedLocation, allStores, onStoreSelect, icons]);
   
-  // Fit bounds to stores when we have search results or when showing all
   useEffect(() => {
     if (!stores.length || !userLocation || selectedLocation) return;
     
-    // If we have stores to show, fit bounds to include them
     if (stores.length > 0) {
       const group = new L.featureGroup(
         stores.map(store => L.marker([store.lat, store.lng]))
       );
       
-      // Only add user location to bounds if we have no search results and radius is 'all'
-      // This way, when searching or filtering categories, we focus only on stores
       if (!hasSearchResults && radius === 'all') {
         group.addLayer(L.marker([userLocation.lat, userLocation.lng]));
       }
       
-      // Use Leaflet's built-in fitBounds with padding
       map.fitBounds(group.getBounds().pad(0.1));
     }
   }, [stores, map, userLocation, radius, hasSearchResults, selectedLocation]);
@@ -142,7 +119,6 @@ function MapUpdater({ stores, allStores, userLocation, radius, hasSearchResults,
   return null;
 }
 
-// AdminPasswordForm component
 const AdminPasswordForm = ({ onSubmit, loading, error }) => {
   const [password, setPassword] = useState('');
 
@@ -150,7 +126,7 @@ const AdminPasswordForm = ({ onSubmit, loading, error }) => {
     e.preventDefault();
     if (password.trim()) {
       onSubmit(password);
-      setPassword(''); // Clear password after submission
+      setPassword('');
     }
   };
 
@@ -204,13 +180,10 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     clearMap
   } = useStoreData();
 
-
-  // Saved locations state
   const [showSavedLocations, setShowSavedLocations] = useState(false);
   const [saveLocationModal, setSaveLocationModal] = useState({ isOpen: false, store: null });
   const [selectedLocation, setSelectedLocation] = useState(null);
   
-  // Driver tracking state
   const [drivers, setDrivers] = useState([]);
   const [driversLoading, setDriversLoading] = useState(false);
   const [driversError, setDriversError] = useState(null);
@@ -219,7 +192,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
 
   const icons = createSimpleIcons();
   
-  // Create car icons for drivers
   const carIcons = {
     available: L.divIcon({
       html: '<div style="background-color: #10b981; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🚗</div>',
@@ -237,7 +209,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     })
   };
 
-  // Filter stores by radius using Leaflet's distance calculation
   const filteredStores = radius === 'all' || !userLocation 
     ? stores 
     : stores.filter(store => {
@@ -248,7 +219,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
         ) <= radiusKm;
       });
 
-  // Fetch drivers function - stable reference
   const fetchDrivers = useCallback(async () => {
     setDriversLoading(true);
     setDriversError(null);
@@ -276,7 +246,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     }
   }, [isAdminMode, user?.id]);
 
-  // Handle admin mode activation with password prompt
   const handleAdminModeToggle = useCallback(() => {
     if (!isAdminMode) {
       setShowAdminPasswordModal(true);
@@ -286,7 +255,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     }
   }, [isAdminMode]);
 
-  // Handle admin password submission
   const handleAdminPasswordSubmit = useCallback(async (password) => {
     try {
       setDriversLoading(true);
@@ -303,18 +271,13 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     }
   }, []);
 
-  // Enhanced search handlers
   const handleSearchFromInput = useCallback((query) => {
     setSearchQuery(query);
     searchStores(query, selectedCategories);
   }, [selectedCategories, searchStores, setSearchQuery]);
 
   const handlePlaceSelect = useCallback((locationData) => {
-    
-    // Center the map on the selected location
     if (locationData.lat && locationData.lng) {
-      // Use the map reference to center on the selected location
-      // The map component will handle this through selectedLocation state
       setSelectedLocation({
         lat: locationData.lat,
         lng: locationData.lng,
@@ -322,16 +285,11 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
         type: 'place'
       });
       
-      // Clear the selection after centering to allow future selections
       setTimeout(() => setSelectedLocation(null), 1000);
     }
     
-    // Set search query to the location for context
     setSearchQuery(locationData.address);
-    
-    // Search for nearby stores - you can search by general terms or categories
-    // This will show all stores near the selected location
-    searchStores('', selectedCategories); // Search all stores with current filters
+    searchStores('', selectedCategories);
   }, [selectedCategories, searchStores, setSearchQuery]);
 
   const handleCategoryChange = useCallback((category) => {
@@ -352,7 +310,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     clearMap(); // Remove all store icons from the map
   }, [setSearchQuery, clearMap]);
 
-  // Saved locations handlers
   const handleSaveLocation = useCallback((store) => {
     if (!isAuthenticated()) {
       alert('Please log in to save locations');
@@ -363,21 +320,17 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
 
   const handleLocationSelect = useCallback(async (location) => {
     try {
-      // First try to find the store in current stores
       let matchingStore = stores.find(store => store.id === location.store_id);
       
-      // If not found, fetch all stores in the category to find the complete data
       if (!matchingStore) {
         const categoryStores = await apiService.getStoresByCategories([location.category]);
         matchingStore = categoryStores.find(store => store.id === location.store_id);
         
-        // If still not found, try fetching all stores
         if (!matchingStore) {
           const searchResults = await apiService.searchStores(location.store_name, []);
           matchingStore = searchResults.find(store => store.id === location.store_id);
         }
         
-        // If still not found, create basic store object
         if (!matchingStore) {
           matchingStore = {
             id: location.store_id,
@@ -390,13 +343,10 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
         }
       }
       
-      // Set the selected location with complete store data
       setSelectedLocation({ ...location, storeData: matchingStore });
-      // Clear the selection after a delay to allow for future selections
       setTimeout(() => setSelectedLocation(null), 100);
     } catch (error) {
       console.error('Error fetching store data for saved location:', error);
-      // Fallback to basic store data
       const storeFromLocation = {
         id: location.store_id,
         name: location.store_name || location.name,
@@ -414,12 +364,10 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
   const showRadiusCircle = radius !== 'all' && userLocation && currentRadius > 0;
   const hasSearchResults = (searchQuery || '').trim() !== '' || selectedCategories.length > 0;
 
-  // Fetch drivers when admin mode changes or user changes
   useEffect(() => {
     fetchDrivers();
   }, [fetchDrivers]);
 
-  // Poll driver positions every 3 seconds to reflect server-side movement simulation
   useEffect(() => {
     if (!user?.id && !isAdminMode) return;
 
@@ -453,7 +401,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     return <div className={styles.mapError}>Error loading map: {error}</div>;
   }
 
-  // Check if user location is available after all hooks are called
   if (!userLocation || !userLocation.lat || !userLocation.lng) {
     return (
       <div className={styles.mapContainer}>
@@ -470,7 +417,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
 
       return (
       <div className={styles.mapContainer}>
-        {/* Enhanced Search Controls */}
         <div className={styles.mapControls}>
           <div className={styles.searchForm}>
             <EnhancedSearchInput
@@ -498,9 +444,7 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
             </div>
           </div>
 
-                  {/* Combined Filters Row */}
         <div className={styles.filtersRow}>
-          {/* Simplified Radius Filter */}
           {userLocation && (
             <div className={styles.radiusFilter}>
               <span className="form-label">Distance:</span>
@@ -531,7 +475,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
             </div>
           )}
 
-          {/* Simplified Category Filter */}
           <div className={styles.categoryFilter}>
             <span className="form-label">Categories:</span>
             {categories.length === 0 ? (
@@ -550,7 +493,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
             )}
           </div>
 
-          {/* Driver Admin Filter */}
           <div className={styles.driverFilter}>
             <button
               onClick={handleAdminModeToggle}
@@ -562,7 +504,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
           </div>
         </div>
 
-          {/* Results Info */}
           {showRadiusCircle && (
             <div className={styles.resultsInfo}>
               Showing {filteredStores.length} of {stores.length} stores within {currentRadius} km
@@ -589,7 +530,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
           )}
         </div>
 
-        {/* Simplified Map */}
         <div className={styles.mapContent}>
           {loading ? (
             <div className={styles.mapLoading}>
@@ -618,14 +558,12 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
               attribution="&copy; OpenStreetMap contributors"
             />
             
-            {/* User location marker */}
             <Marker position={[userLocation.lat, userLocation.lng]} icon={icons.user}>
               <Popup>
                 <strong>You are here</strong>
               </Popup>
             </Marker>
 
-            {/* Radius circle using Leaflet's built-in Circle */}
             {showRadiusCircle && (
               <Circle
                 center={[userLocation.lat, userLocation.lng]}
@@ -640,7 +578,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
               />
             )}
 
-            {/* Store markers */}
             {filteredStores.map((store) => (
               <Marker
                 key={store.id}
@@ -681,7 +618,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
               </Marker>
             ))}
 
-            {/* Driver markers */}
             {(user?.id || isAdminMode) && drivers
               .filter(driver => driver.current_lat != null && driver.current_lng != null)
               .map((driver) => {
@@ -719,7 +655,6 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
                 );
               })}
             
-            {/* Show info about drivers without location */}
             {(user?.id || isAdminMode) && drivers.filter(driver => !driver.current_lat || !driver.current_lng).length > 0 && (
               <div className={styles.driverLocationWarning}>
                 ⚠️ {drivers.filter(driver => !driver.current_lat || !driver.current_lng).length} delivery driver(s) location unavailable
@@ -729,25 +664,21 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
         )}
       </div>
       
-      {/* Saved Locations Modal */}
       <SavedLocations
         isOpen={showSavedLocations}
         onClose={() => setShowSavedLocations(false)}
         onLocationSelect={handleLocationSelect}
       />
       
-      {/* Save Location Modal */}
       <SaveLocationModal
         store={saveLocationModal.store}
         isOpen={saveLocationModal.isOpen}
         onClose={() => setSaveLocationModal({ isOpen: false, store: null })}
         onSave={() => {
-          // Optionally refresh saved locations or show success message
           console.log('Location saved successfully!');
         }}
       />
 
-        {/* Admin Password Modal */}
         {showAdminPasswordModal && (
           <div className={styles.modalOverlay}>
             <div className={styles.modalContent}>

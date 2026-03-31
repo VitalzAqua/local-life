@@ -3,7 +3,7 @@ const router = express.Router();
 const { attachAuth, requireAdmin } = require('../middleware/auth');
 const { db } = require('../db');
 
-// Simple distance calculation function (Haversine formula)
+// Distance calculation using the Haversine formula.
 function calculateDistance(lat1, lng1, lat2, lng2) {
     const R = 6371; // Earth's radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -15,7 +15,6 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
     return R * c;
 }
 
-// Update driver location
 router.post('/drivers/:driverId/location', requireAdmin, async (req, res) => {
     try {
         const { driverId } = req.params;
@@ -33,7 +32,6 @@ router.post('/drivers/:driverId/location', requireAdmin, async (req, res) => {
     }
 });
 
-// Get drivers (with admin password protection for full details)
 router.get('/drivers', attachAuth, async (req, res) => {
     try {
         if (req.auth?.role === 'admin') {
@@ -55,7 +53,6 @@ router.get('/drivers', attachAuth, async (req, res) => {
     }
 });
 
-// Get available drivers only (public endpoint)
 router.get('/drivers/available', async (req, res) => {
     try {
         const result = await db.query(`
@@ -71,7 +68,6 @@ router.get('/drivers/available', async (req, res) => {
     }
 });
 
-// Get all drivers with full details (admin endpoint)
 router.get('/drivers/admin/all', requireAdmin, async (req, res) => {
     try {
         const result = await db.query(`
@@ -94,7 +90,6 @@ router.get('/drivers/admin/all', requireAdmin, async (req, res) => {
     }
 });
 
-// Get active deliveries
 router.get('/active', async (req, res) => {
     try {
         const result = await db.query(`
@@ -117,12 +112,10 @@ router.get('/active', async (req, res) => {
     }
 });
 
-// Cleanup for shutdown
 router.post('/cleanup-for-shutdown', requireAdmin, async (req, res) => {
     try {
         console.log('🧹 Cleaning up delivery system for shutdown...');
         
-        // Mark all drivers as available and return them to base
         await db.query(`
             UPDATE drivers 
             SET is_available = true, 
@@ -130,7 +123,6 @@ router.post('/cleanup-for-shutdown', requireAdmin, async (req, res) => {
                 current_lng = ST_X(original_location::geometry)
         `);
         
-        // Complete all active deliveries
         await db.query(`
             UPDATE deliveries 
             SET status = 'completed', delivered_at = CURRENT_TIMESTAMP 
@@ -145,7 +137,6 @@ router.post('/cleanup-for-shutdown', requireAdmin, async (req, res) => {
     }
 });
 
-// Health check
 router.get('/health', async (req, res) => {
     try {
         const driversCount = await db.query('SELECT COUNT(*) as count FROM drivers WHERE is_online = true');
@@ -172,12 +163,8 @@ router.get('/health', async (req, res) => {
     }
 });
 
-// Periodic console polling removed — delivery state changes are logged from
-// movement simulation in index.js; order assignment logs from orders.js.
-
 function stopDriverStatusMonitoring() {}
 
-// Cleanup for shutdown
 async function cleanup() {
   console.log('🧹 Cleaning up delivery service...');
   stopDriverStatusMonitoring();

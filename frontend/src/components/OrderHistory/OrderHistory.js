@@ -9,7 +9,6 @@ const OrderHistory = ({ user }) => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('orders');
 
-  // Fetch data function
   const fetchData = useCallback(async () => {
     if (!user?.id) return;
 
@@ -30,12 +29,10 @@ const OrderHistory = ({ user }) => {
     }
   }, [user?.id]);
 
-  // Initial data fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Set up periodic polling for real-time updates
   useEffect(() => {
     if (!user?.id) return;
 
@@ -72,12 +69,10 @@ const OrderHistory = ({ user }) => {
   const getCustomerLocationDisplay = (customerLocation) => {
     if (!customerLocation) return 'Location not available';
     
-    // If it's an object with address property (new format)
     if (typeof customerLocation === 'object' && customerLocation.address) {
       return customerLocation.address;
     }
     
-    // If it's a string (old format)
     if (typeof customerLocation === 'string') {
       return customerLocation;
     }

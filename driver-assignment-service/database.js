@@ -1,7 +1,6 @@
 const { Pool } = require('pg');
 const config = require('./config');
 
-// Create connection pool
 const pool = new Pool({
   connectionString: config.database.connectionString,
   ...config.database.pool,
@@ -12,42 +11,36 @@ const pool = new Pool({
   })()
 });
 
-// Database schema verification and setup
 async function initializeDatabase() {
   const client = await pool.connect();
   
   try {
     console.log('🔧 Initializing optimized driver assignment database...');
     
-    // Ensure drivers table has required columns for multi-delivery
     await client.query(`
       ALTER TABLE drivers 
       ADD COLUMN IF NOT EXISTS max_concurrent_orders INTEGER DEFAULT 3,
       ADD COLUMN IF NOT EXISTS speed_kmh INTEGER DEFAULT 40
     `);
     
-    // Ensure deliveries table has route ordering
     await client.query(`
       ALTER TABLE deliveries 
       ADD COLUMN IF NOT EXISTS route_order INTEGER DEFAULT 1,
       ADD COLUMN IF NOT EXISTS estimated_delivery_time INTEGER DEFAULT 30
     `);
     
-    // Create index for route optimization queries
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_deliveries_driver_route 
       ON deliveries(driver_id, route_order) 
       WHERE status NOT IN ('completed', 'cancelled')
     `);
     
-    // Create index for active deliveries lookup
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_deliveries_active 
       ON deliveries(driver_id, status) 
       WHERE status NOT IN ('completed', 'cancelled')
     `);
     
-    // Function to calculate driver total ETA
     await client.query(`
       CREATE OR REPLACE FUNCTION calculate_driver_total_eta(driver_id_param INTEGER)
       RETURNS INTEGER AS $$
@@ -65,7 +58,6 @@ async function initializeDatabase() {
       $$ LANGUAGE plpgsql;
     `);
     
-    // Function to get driver capacity utilization
     await client.query(`
       CREATE OR REPLACE FUNCTION get_driver_utilization(driver_id_param INTEGER)
       RETURNS DECIMAL(5,2) AS $$
@@ -92,7 +84,6 @@ async function initializeDatabase() {
       $$ LANGUAGE plpgsql;
     `);
     
-    // Function to get optimized driver list for assignment
     await client.query(`
       CREATE OR REPLACE FUNCTION get_optimized_drivers_for_assignment()
       RETURNS TABLE (
@@ -134,12 +125,10 @@ async function initializeDatabase() {
       $$ LANGUAGE plpgsql;
     `);
     
-    // Trigger to update driver availability based on deliveries
     await client.query(`
       CREATE OR REPLACE FUNCTION update_driver_availability()
       RETURNS TRIGGER AS $$
       BEGIN
-        -- Update driver availability based on current deliveries
         UPDATE drivers 
         SET is_available = (
           SELECT COUNT(*) < max_concurrent_orders
@@ -154,7 +143,6 @@ async function initializeDatabase() {
       $$ LANGUAGE plpgsql;
     `);
     
-    // Create trigger if it doesn't exist
     await client.query(`
       DROP TRIGGER IF EXISTS trigger_update_driver_availability ON deliveries;
       CREATE TRIGGER trigger_update_driver_availability
@@ -173,7 +161,6 @@ async function initializeDatabase() {
   }
 }
 
-// Test database connection
 pool.on('connect', () => {
   console.log('🗄️  Connected to PostgreSQL database');
 });
@@ -182,7 +169,6 @@ pool.on('error', (err) => {
   console.error('🚨 Database connection error:', err);
 });
 
-// Initialize database on startup
 initializeDatabase().catch(console.error);
 
 module.exports = pool; 

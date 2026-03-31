@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
-// Use the global db object created in index.js
 const { db } = require('../db');
 
-// Nearby stores endpoint 
 router.get('/', async (req, res) => {
   try {
     const { lat, lng, radius, categories } = req.query;
@@ -20,7 +18,6 @@ router.get('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid coordinates or radius' });
     }
 
-    // Build the query
     let sql = `
       SELECT 
         id, name, category,
@@ -32,9 +29,8 @@ router.get('/', async (req, res) => {
       WHERE ST_DWithin(location, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, $3)
     `;
     
-    let queryParams = [numLat, numLng, searchRadius * 1000]; // Convert km to meters
+    let queryParams = [numLat, numLng, searchRadius * 1000];
     
-    // Add category filter if provided
     if (categories) {
       const categoryArray = categories.split(',').map(c => c.trim());
       sql += ` AND category = ANY($4)`;
@@ -56,7 +52,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// All stores endpoint (no location filtering)
 router.get('/all', async (req, res) => {
   try {
     const { categories } = req.query;
@@ -72,7 +67,6 @@ router.get('/all', async (req, res) => {
     
     let queryParams = [];
     
-    // Add category filter if provided
     if (categories) {
       const categoryArray = categories.split(',').map(c => c.trim());
       sql += ` WHERE category = ANY($1)`;
@@ -94,7 +88,6 @@ router.get('/all', async (req, res) => {
   }
 });
 
-// Store categories endpoint
 router.get('/categories', async (req, res) => {
   try {
     const result = await db.query(`

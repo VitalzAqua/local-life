@@ -1,8 +1,5 @@
 import L from 'leaflet';
 
-// Simple icon creation using Leaflet's built-in methods
-// This is much simpler than converting React icons to data URLs
-
 const createIcon = (color, symbol, size = 25) => {
   return L.divIcon({
     className: 'custom-map-icon',
@@ -31,7 +28,6 @@ const createIcon = (color, symbol, size = 25) => {
   });
 };
 
-// User location icon with different style
 const createUserIcon = () => {
   return L.divIcon({
     className: 'user-location-icon',
@@ -67,7 +63,6 @@ const createUserIcon = () => {
   });
 };
 
-// Category icons with consistent styling
 export const createSimpleIcons = () => {
   return {
     restaurant: createIcon('#ff6b6b', '🍽️'),

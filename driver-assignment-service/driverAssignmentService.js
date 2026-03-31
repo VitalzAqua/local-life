@@ -10,7 +10,6 @@ class DriverAssignmentService {
     this.PREPARATION_TIME_MINUTES = 5; // Time for restaurant preparation
   }
 
-  // Get all drivers with their current delivery assignments
   async getDriversWithDeliveries() {
     try {
       const query = `
@@ -65,7 +64,7 @@ class DriverAssignmentService {
     }
   }
 
-  // Calculate distance between two points (Haversine formula)
+  // Distance calculation using the Haversine formula.
   calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -78,14 +77,13 @@ class DriverAssignmentService {
     return R * c;
   }
 
-  // Calculate time to travel between points (in minutes)
+  // Travel time in minutes between two coordinates.
   calculateTravelTime(lat1, lon1, lat2, lon2, speedKmh = null) {
     const distance = this.calculateDistance(lat1, lon1, lat2, lon2);
     const speed = speedKmh || this.SPEED_KMH;
     return (distance / speed) * 60; // Convert to minutes
   }
 
-  // Generate all possible delivery sequences for a set of deliveries
   generateDeliverySequences(deliveries) {
     if (deliveries.length === 0) return [[]];
     if (deliveries.length === 1) {
@@ -98,11 +96,9 @@ class DriverAssignmentService {
       ];
     }
 
-    // For multiple deliveries, generate all possible permutations
     const sequences = [];
     const deliveryStops = [];
 
-    // Create pickup and dropoff stops for each delivery
     deliveries.forEach(delivery => {
       deliveryStops.push(
         { type: 'pickup', delivery, location: delivery.restaurant_location },
@@ -110,10 +106,8 @@ class DriverAssignmentService {
       );
     });
 
-    // Generate all permutations of stops
     const permutations = this.getPermutations(deliveryStops);
     
-    // Filter valid sequences (pickup must come before dropoff for each order)
     const validSequences = permutations.filter(sequence => {
       const orderPositions = {};
       
@@ -128,7 +122,6 @@ class DriverAssignmentService {
         orderPositions[orderId][stop.type] = i;
       }
       
-      // Check that pickup comes before dropoff for all orders
       return Object.values(orderPositions).every(positions => 
         positions.pickup < positions.dropoff
       );
@@ -137,7 +130,6 @@ class DriverAssignmentService {
     return validSequences;
   }
 
-  // Get all permutations of an array
   getPermutations(arr) {
     if (arr.length <= 1) return [arr];
     
@@ -155,7 +147,6 @@ class DriverAssignmentService {
     return permutations;
   }
 
-  // Calculate total ETA for a delivery sequence
   calculateSequenceETA(driverLocation, sequence, speedKmh = null) {
     if (sequence.length === 0) return 0;
 
@@ -164,7 +155,6 @@ class DriverAssignmentService {
     let currentLng = driverLocation.longitude;
 
     for (const stop of sequence) {
-      // Travel time to this stop
       const travelTime = this.calculateTravelTime(
         currentLat, currentLng,
         stop.location.lat, stop.location.lng,
@@ -172,14 +162,12 @@ class DriverAssignmentService {
       );
       totalTime += travelTime;
 
-      // Stop time (pickup/delivery)
       if (stop.type === 'pickup') {
         totalTime += this.PREPARATION_TIME_MINUTES + this.STOP_TIME_MINUTES;
       } else {
         totalTime += this.STOP_TIME_MINUTES;
       }
 
-      // Update current position
       currentLat = stop.location.lat;
       currentLng = stop.location.lng;
     }
@@ -187,15 +175,12 @@ class DriverAssignmentService {
     return totalTime; // Return in minutes
   }
 
-  // Find optimal delivery sequence for a driver with new order
   findOptimalSequence(driver, newDelivery) {
-    // Debug driver location
     console.log(`🔍 Finding optimal sequence for driver ${driver.driver_name}:`);
     console.log(`  Driver location: ${driver.latitude}, ${driver.longitude}`);
     console.log(`  Existing deliveries: ${driver.current_deliveries.length}`);
     console.log(`  New delivery: ${newDelivery.order_id}`);
     
-    // Validate driver location
     if (!driver.latitude || !driver.longitude || isNaN(driver.latitude) || isNaN(driver.longitude)) {
       console.error(`❌ Invalid driver location for ${driver.driver_name}: ${driver.latitude}, ${driver.longitude}`);
       return {
@@ -205,7 +190,6 @@ class DriverAssignmentService {
       };
     }
     
-    // Validate new delivery locations
     if (!newDelivery.restaurant_location || !newDelivery.customer_location) {
       console.error(`❌ Missing location data for order ${newDelivery.order_id}`);
       return {
@@ -215,7 +199,6 @@ class DriverAssignmentService {
       };
     }
     
-    // Ensure location objects have proper structure
     const validateLocation = (loc, name) => {
       if (!loc || typeof loc !== 'object') {
         console.error(`❌ Invalid ${name} location: not an object`);
@@ -241,7 +224,6 @@ class DriverAssignmentService {
       };
     }
     
-    // Normalize location format (handle both lat/lng and latitude/longitude)
     const normalizeLocation = (loc) => ({
       lat: loc.lat || loc.latitude,
       lng: loc.lng || loc.longitude
@@ -254,7 +236,6 @@ class DriverAssignmentService {
       delivery_id: del.delivery_id
     }));
 
-    // Normalize new delivery locations
     const normalizedNewDelivery = {
       order_id: newDelivery.order_id,
       restaurant_location: normalizeLocation(newDelivery.restaurant_location),

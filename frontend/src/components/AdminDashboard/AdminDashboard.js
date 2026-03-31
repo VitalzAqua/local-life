@@ -12,7 +12,6 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('orders');
 
-  // Fetch data function
   const fetchData = useCallback(async () => {
     try {
       setError('');
@@ -27,12 +26,10 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  // Initial data fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Set up periodic polling for real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
       fetchData();
@@ -104,7 +101,6 @@ const AdminDashboard = () => {
     try {
       await apiService.deleteAdminOrder(orderId);
       
-      // Remove the order from the state
       setOrders(orders.filter(order => order.id !== orderId));
       
       alert('Order deleted successfully');
@@ -137,7 +133,6 @@ const AdminDashboard = () => {
     try {
       await apiService.deleteAdminReservation(reservationId);
       
-      // Remove the reservation from the state
       setReservations(reservations.filter(reservation => reservation.id !== reservationId));
       
       alert('Reservation deleted successfully');

@@ -43,9 +43,7 @@ const corsOptionsDelegate = (req, callback) => {
 
 app.use(cors(corsOptionsDelegate));
 
-// Request timeout middleware - prevents hanging requests
 app.use((req, res, next) => {
-  // Set request timeout to 25 seconds
   req.setTimeout(25000, () => {
     console.log(`⏱️ Request timeout: ${req.method} ${req.url}`);
     if (!res.headersSent) {
@@ -58,7 +56,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Enhanced error handling middleware
 app.use((req, res, next) => {
   res.on('timeout', () => {
     console.log(`⏱️ Response timeout: ${req.method} ${req.url}`);
@@ -69,7 +66,6 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Import routes
 const usersRouter = require('./routes/users');
 const ordersRouter = require('./routes/orders');
 const reservationsRouter = require('./routes/reservations');
@@ -78,23 +74,15 @@ const deliveryRouter = require('./routes/delivery');
 const savedLocationsRouter = require('./routes/savedLocations');
 const searchRouter = require('./routes/search');
 
-// Enhanced graceful shutdown with delivery cleanup
 const gracefulShutdown = async (signal) => {
   console.log(`\n🔄 Received ${signal}. Starting graceful shutdown...`);
   
   try {
-    // Step 1: Stop accepting new requests
     console.log('🚫 Stopping server from accepting new connections...');
-    
-    // Step 2: Clean up active deliveries
     console.log('🧹 Cleaning up active deliveries...');
     await cleanupActiveDeliveries();
-    
-    // Step 3: Reset all drivers to available state
     console.log('🚗 Resetting all drivers to available state...');
     await resetAllDrivers();
-    
-    // Step 4: Close database connections
     console.log('🗄️ Closing database connections...');
     await db.end();
     
@@ -107,10 +95,8 @@ const gracefulShutdown = async (signal) => {
   }
 };
 
-// Function to clean up active deliveries
 const cleanupActiveDeliveries = async () => {
   try {
-    // Get all active deliveries
     const activeDeliveries = await db.query(`
       SELECT d.id, d.order_id, d.status, d.driver_id
       FROM deliveries d
@@ -124,7 +110,6 @@ const cleanupActiveDeliveries = async () => {
     
     console.log(`  🧹 Found ${activeDeliveries.rows.length} active deliveries to clean up`);
     
-    // Capture affected order IDs before updating delivery status
     const affectedOrders = await db.query(`
       SELECT DISTINCT order_id FROM deliveries
       WHERE status IN ('assigned', 'started', 'arrived_at_restaurant', 'picked_up', 'returning')
@@ -152,10 +137,8 @@ const cleanupActiveDeliveries = async () => {
   }
 };
 
-// Function to reset all drivers to available state
 const resetAllDrivers = async () => {
   try {
-    // Reset ALL drivers to available and back to their original home position
     const result = await db.query(`
       UPDATE drivers 
       SET is_available = true, 
@@ -174,36 +157,27 @@ const resetAllDrivers = async () => {
   }
 };
 
-// Enhanced startup recovery function
 const startupRecovery = async () => {
   console.log('🔄 Running startup recovery...');
   
   try {
-    // Test database connection first
     console.log('🔍 Testing database connection...');
     await testDatabaseConnection();
-    
-    // Clean up any stuck deliveries from previous session
     await cleanupActiveDeliveries();
-    
-    // Reset all drivers to available state
     await resetAllDrivers();
     
     console.log('✅ Startup recovery completed successfully');
     
   } catch (error) {
     console.error('❌ Error during startup recovery:', error);
-    // Don't exit the process, just log the error
   }
 };
 
-// Function to test database connection
 const testDatabaseConnection = async () => {
   try {
     const result = await db.query('SELECT NOW() as current_time, COUNT(*) as store_count FROM stores');
     console.log(`✅ Database connected successfully. Server time: ${result.rows[0].current_time}, Store count: ${result.rows[0].store_count}`);
     
-    // Test categories query specifically
     const categoriesTest = await db.query('SELECT DISTINCT category FROM stores WHERE category IS NOT NULL ORDER BY category LIMIT 5');
     console.log(`✅ Categories query test passed. Sample categories: ${categoriesTest.rows.map(r => r.category).join(', ')}`);
     
@@ -213,12 +187,10 @@ const testDatabaseConnection = async () => {
   }
 };
 
-// Register graceful shutdown handlers
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGQUIT', () => gracefulShutdown('SIGQUIT'));
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
   gracefulShutdown('uncaughtException');
@@ -229,10 +201,8 @@ process.on('unhandledRejection', (reason, promise) => {
   gracefulShutdown('unhandledRejection');
 });
 
-// Run startup recovery when server starts
 startupRecovery();
 
-// Mount routes
 app.use('/api/users', usersRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/reservations', reservationsRouter);
@@ -241,7 +211,6 @@ app.use('/api/search', searchRouter);
 app.use('/delivery', deliveryRouter);
 app.use('/api/saved-locations', savedLocationsRouter);
 
-// Health check endpoints
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'local-life-backend' });
 });
@@ -250,7 +219,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'local-life-backend' });
 });
 
-// Global error handler — must come after ALL routes, before 404 and app.listen
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(`❌ Global error handler: ${req.method} ${req.url}`, err);
 
@@ -279,7 +248,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler — must be registered after all routes and before app.listen
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: 'Route not found',
@@ -288,7 +257,6 @@ app.use((req, res) => {
   });
 });
 
-// Start server
 const server = app.listen(SERVER_CONFIG.PORT, () => {
   console.log(`🚀 Server running on port ${SERVER_CONFIG.PORT}`);
   console.log(`📍 Environment: ${SERVER_CONFIG.NODE_ENV}`);
@@ -296,13 +264,12 @@ const server = app.listen(SERVER_CONFIG.PORT, () => {
     `🌐 CORS origins: ${SERVER_CONFIG.CORS_ORIGINS.length ? SERVER_CONFIG.CORS_ORIGINS.join(', ') : 'same-origin fallback'}`
   );
 
-  // Wait for startup recovery before starting simulation loops
   setTimeout(() => {
     startMovementSimulation();
   }, 3000);
 });
 
-// Movement simulation — calls DB directly, no self-HTTP fetch
+// Delivery movement simulation
 function logDeliveryTransition(driverName, orderId, deliveryId, fromStatus, toStatus, detail = '') {
   const oid = orderId != null ? `#${orderId}` : 'n/a';
   const extra = detail ? ` · ${detail}` : '';
@@ -480,7 +447,6 @@ function startMovementSimulation() {
   setInterval(simulateMovement, 3000);
 }
 
-// Handle server errors
 server.on('error', (error) => {
   console.error('Server error:', error);
 });

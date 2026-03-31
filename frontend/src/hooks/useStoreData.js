@@ -26,15 +26,12 @@ export const useStoreData = () => {
       let stores = [];
       
       if (query.trim()) {
-        // Text search
         console.log('🔍 Searching stores with query:', query, 'categories:', selectedCategories);
         stores = await apiService.searchStores(query, selectedCategories);
       } else if (selectedCategories.length > 0) {
-        // Category filter only
         console.log('🔍 Fetching stores by categories:', selectedCategories);
         stores = await apiService.getStoresByCategories(selectedCategories);
       } else {
-        // No filters - show all stores
         console.log('🔍 Fetching all stores (no filters)');
         stores = await apiService.getStoresByCategories([]);
       }
@@ -52,14 +49,12 @@ export const useStoreData = () => {
   }, []);
 
   const clearSearch = useCallback(() => {
-    // Instead of clearing stores, reload all stores to show the full map
-    searchStores('', []); // This will show all stores
+    searchStores('', []);
     setLastSearch({ query: '', categories: [] });
     setError(null);
   }, [searchStores]);
 
   const clearMap = useCallback(() => {
-    // Clear all store icons from the map
     setStores([]);
     setLastSearch({ query: '', categories: [] });
     setError(null);

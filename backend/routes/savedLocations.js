@@ -1,10 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireSameUserOrAdmin, requireUser } = require('../middleware/auth');
-// Use the global db object created in index.js
 const { db } = require('../db');
 
-// Get all saved locations for a user
 router.get('/user/:userId', requireAuth, requireSameUserOrAdmin('userId'), async (req, res) => {
     try {
         const { userId } = req.params;
@@ -34,7 +32,6 @@ router.get('/user/:userId', requireAuth, requireSameUserOrAdmin('userId'), async
     }
 });
 
-// Save a new location
 router.post('/', requireUser, async (req, res) => {
     try {
         const { store_id, location_name, notes } = req.body;
@@ -62,7 +59,6 @@ router.post('/', requireUser, async (req, res) => {
     }
 });
 
-// Update a saved location
 router.put('/:id', requireUser, async (req, res) => {
     try {
         const { id } = req.params;
@@ -93,7 +89,6 @@ router.put('/:id', requireUser, async (req, res) => {
     }
 });
 
-// Delete a saved location
 router.delete('/:id', requireUser, async (req, res) => {
     try {
         const { id } = req.params;
@@ -116,7 +111,6 @@ router.delete('/:id', requireUser, async (req, res) => {
     }
 });
 
-// Check if a location is saved by user
 router.get('/check/:userId/:storeId', requireAuth, requireSameUserOrAdmin('userId'), async (req, res) => {
     try {
         const { userId, storeId } = req.params;
