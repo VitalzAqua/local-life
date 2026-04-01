@@ -8,6 +8,8 @@
     "dev": "nodemon index.js",
     "test": "NODE_ENV=test jest --runInBand",
     "test:watch": "NODE_ENV=test jest --watch",
+    "backfill:osm:stores": "node scripts/backfillOsmStoreAttributes.js",
+    "import:osm:toronto": "node scripts/importTorontoOsmStores.js",
     "postinstall": "echo 'Backend dependencies installed successfully'"
   },
   "keywords": [

@@ -22,6 +22,7 @@ Optional sample data:
 
 ```bash
 npm run db:seed:stores
+npm run db:import:osm:toronto
 ```
 
 ## Docker
@@ -281,6 +282,24 @@ You have two options:
 ```bash
 npm run db:seed:stores
 ```
+
+- For real Toronto POIs sourced from OpenStreetMap via Overpass, run:
+
+```bash
+npm run db:import:osm:toronto
+```
+
+This importer reads `backend/.env`, connects with `DATABASE_URL`, and safely supports reruns by storing a stable OSM `source_id` in `stores.attributes` and skipping duplicates via a partial unique index.
+
+Helpful options:
+
+```bash
+cd backend
+npm run import:osm:toronto -- --dry-run
+npm run import:osm:toronto -- --limit=250
+```
+
+The importer pulls shops plus selected amenities/leisure/tourism POIs inside the existing Toronto bounds from [`backend/config/constants.js`](./backend/config/constants.js), maps them into LocalLife categories such as `restaurant`, `cafe`, `pharmacy`, `gym`, `grocery`, `hotel`, and `shop`, and stores the raw OSM tags in `attributes.osm_tags`.
 
 ### 6. Start the application
 

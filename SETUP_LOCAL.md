@@ -116,6 +116,14 @@ For the larger Toronto dataset:
 npm run db:seed:stores
 ```
 
+For real Toronto POIs from OpenStreetMap/Overpass instead:
+
+```bash
+npm run db:import:osm:toronto
+```
+
+The importer is safe to rerun. It stores a stable OSM source identifier in `stores.attributes.source_id`, keeps raw OSM tags in `stores.attributes.osm_tags`, and skips duplicates when the same OSM place is imported again.
+
 If you want only a few manual demo stores instead, add them in psql:
 
 ```sql

@@ -8,7 +8,7 @@ if [ "${1:-}" = "--with-stores" ]; then
   SEED_STORES=1
 fi
 
-PGUSER="${PGUSER:-postgres}"
+PGUSER="${PGUSER:-${USER:-postgres}}"
 PGDATABASE="${PGDATABASE:-local_life}"
 
 echo "Applying schema to database '$PGDATABASE' as user '$PGUSER'..."

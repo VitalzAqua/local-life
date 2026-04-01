@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS stores (
 );
 CREATE INDEX IF NOT EXISTS idx_stores_location ON stores USING GIST(location);
 CREATE INDEX IF NOT EXISTS idx_stores_category ON stores(category);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_stores_source_id
+  ON stores ((attributes->>'source_id'))
+  WHERE attributes ? 'source_id';
 
 -- =============================================================
 -- USERS

@@ -18,6 +18,8 @@
     "env:copy": "sh scripts/copy-env.sh",
     "db:init": "sh scripts/init-local-db.sh",
     "db:seed:stores": "sh scripts/init-local-db.sh --with-stores",
+    "db:backfill:osm:stores": "cd backend && npm run backfill:osm:stores",
+    "db:import:osm:toronto": "cd backend && npm run import:osm:toronto",
     "setup:local": "npm run env:copy && npm run install:all",
     "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",

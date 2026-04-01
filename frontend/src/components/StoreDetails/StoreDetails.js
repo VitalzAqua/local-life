@@ -20,6 +20,18 @@ const normalizeProducts = (products) => {
     .filter(product => product.name && Number.isFinite(product.price));
 };
 
+const getAddressLabel = (store) => {
+  if (store?.attributes?.address) {
+    return store.attributes.address;
+  }
+
+  if (Number.isFinite(Number(store?.lat)) && Number.isFinite(Number(store?.lng))) {
+    return `Coordinates ${Number(store.lat).toFixed(5)}, ${Number(store.lng).toFixed(5)}`;
+  }
+
+  return 'Address not available';
+};
+
 const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) => {
   const [activeTab, setActiveTab] = useState('products');
   const [cart, setCart] = useState([]);
@@ -619,6 +631,7 @@ const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) 
   }
 
   const storeStatus = isStoreOpen();
+  const hoursDisplay = store?.attributes?.hours_display || store?.attributes?.opening_hours;
 
   return (
     <div className={styles.storeDetails}>
@@ -630,7 +643,7 @@ const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) 
         <div className={styles.storeInfo}>
           <div className={styles.storeInfoItem}>
             <span className={styles.storeInfoIcon}>📍</span>
-            <span>{store.attributes?.address || 'Address not available'}</span>
+            <span>{getAddressLabel(store)}</span>
           </div>
           
           {store.attributes?.open && store.attributes?.close && (
@@ -640,6 +653,13 @@ const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) 
                 {store.attributes.open} - {store.attributes.close}
                 {storeStatus !== null && (storeStatus ? ' (Open)' : ' (Closed)')}
               </span>
+            </div>
+          )}
+
+          {!store.attributes?.open && !store.attributes?.close && hoursDisplay && (
+            <div className={styles.storeInfoItem}>
+              <span className={styles.storeInfoIcon}>🕒</span>
+              <span className={styles.storeHours}>{hoursDisplay}</span>
             </div>
           )}
         </div>
