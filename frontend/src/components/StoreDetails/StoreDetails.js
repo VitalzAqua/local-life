@@ -5,6 +5,10 @@ import { isStoreOpenNow } from '../../utils/storeHours';
 import AddressInput from '../AddressInput/AddressInput';
 import styles from './StoreDetails.module.css';
 
+const DEFAULT_RESERVATION_OPEN = '08:00';
+const DEFAULT_RESERVATION_CLOSE = '22:00';
+const RESERVATION_TIME_STEP_MINUTES = 30;
+
 const normalizeProducts = (products) => {
   if (!Array.isArray(products)) {
     return [];
@@ -18,6 +22,74 @@ const normalizeProducts = (products) => {
       description: typeof product.description === 'string' ? product.description.trim() : ''
     }))
     .filter(product => product.name && Number.isFinite(product.price));
+};
+
+const normalizeTimeValue = (value) => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) {
+    return null;
+  }
+
+  return `${String(match[1]).padStart(2, '0')}:${match[2]}`;
+};
+
+const timeToMinutes = (value) => {
+  const normalized = normalizeTimeValue(value);
+  if (!normalized) {
+    return null;
+  }
+
+  const [hours, minutes] = normalized.split(':').map(Number);
+  return (hours * 60) + minutes;
+};
+
+const minutesToTimeValue = (value) => {
+  const normalized = ((value % (24 * 60)) + (24 * 60)) % (24 * 60);
+  const hours = Math.floor(normalized / 60);
+  const minutes = normalized % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const formatReservationTimeLabel = (value) => {
+  const normalized = normalizeTimeValue(value);
+  if (!normalized) {
+    return value;
+  }
+
+  const [hours, minutes] = normalized.split(':').map(Number);
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours % 12 || 12;
+  return `${displayHour}:${String(minutes).padStart(2, '0')} ${suffix}`;
+};
+
+const buildReservationTimeOptions = (storeHours = {}) => {
+  const open = timeToMinutes(storeHours.open) ?? timeToMinutes(DEFAULT_RESERVATION_OPEN);
+  const close = timeToMinutes(storeHours.close) ?? timeToMinutes(DEFAULT_RESERVATION_CLOSE);
+
+  if (open == null || close == null) {
+    return [];
+  }
+
+  const adjustedClose = close <= open ? close + (24 * 60) : close;
+  const options = [];
+
+  for (
+    let currentMinutes = open;
+    currentMinutes <= adjustedClose;
+    currentMinutes += RESERVATION_TIME_STEP_MINUTES
+  ) {
+    const value = minutesToTimeValue(currentMinutes);
+    options.push({
+      value,
+      label: formatReservationTimeLabel(value)
+    });
+  }
+
+  return options;
 };
 
 const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) => {
@@ -545,6 +617,8 @@ const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) 
   };
 
   const renderReservations = () => {
+    const timeOptions = buildReservationTimeOptions(store?.attributes);
+
     return (
       <form onSubmit={handleReservationSubmit} className={styles.reservationForm}>
         <div className={styles.formGroup}>
@@ -561,13 +635,19 @@ const StoreDetails = ({ store, user, currentUserLocation, currentUserAddress }) 
 
         <div className={styles.formGroup}>
           <label className={styles.formLabel}>Time *</label>
-          <input
-            type="time"
-            className={styles.formInput}
+          <select
+            className={styles.formSelect}
             value={reservationData.time}
             onChange={(e) => handleReservationChange('time', e.target.value)}
             required
-          />
+          >
+            <option value="" disabled>Select a reservation time</option>
+            {timeOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={styles.formGroup}>
