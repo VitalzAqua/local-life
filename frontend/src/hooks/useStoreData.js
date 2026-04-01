@@ -60,6 +60,13 @@ export const useStoreData = () => {
     setError(null);
   }, []);
 
+  const applyStoreResults = useCallback((nextStores = [], query = '', categories = []) => {
+    setStores(nextStores);
+    setLastSearch({ query, categories });
+    setError(null);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchCategories();
     searchStores('', []);
@@ -73,6 +80,7 @@ export const useStoreData = () => {
     searchStores,
     clearSearch,
     clearMap,
-    lastSearch
+    lastSearch,
+    applyStoreResults
   };
 }; 

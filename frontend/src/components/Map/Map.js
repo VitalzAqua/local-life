@@ -178,7 +178,8 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     error,
     searchStores,
     clearSearch,
-    clearMap
+    clearMap,
+    applyStoreResults
   } = useStoreData();
 
   const [showSavedLocations, setShowSavedLocations] = useState(false);
@@ -230,6 +231,32 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
   }, [selectedCategories, searchStores, setSearchQuery]);
 
   const handlePlaceSelect = useCallback((locationData) => {
+    if (locationData.type === 'allNearby') {
+      const inputValue = locationData.inputValue || locationData.brand || locationData.name || '';
+      setSearchQuery(inputValue);
+      applyStoreResults(locationData.stores || [], inputValue, selectedCategories);
+      setSelectedLocation(null);
+      return;
+    }
+
+    if (locationData.type === 'store' && locationData.storeData) {
+      const selectedStore = locationData.storeData;
+      const inputValue = locationData.inputValue || selectedStore.name || locationData.name || '';
+
+      setSearchQuery(inputValue);
+      applyStoreResults([selectedStore], inputValue, selectedCategories);
+      setSelectedLocation({
+        lat: selectedStore.lat,
+        lng: selectedStore.lng,
+        name: selectedStore.name,
+        address: selectedStore.address,
+        type: 'store',
+        storeData: selectedStore
+      });
+      setTimeout(() => setSelectedLocation(null), 1000);
+      return;
+    }
+
     if (locationData.lat && locationData.lng) {
       setSelectedLocation({
         lat: locationData.lat,
@@ -243,7 +270,7 @@ const Map = ({ userLocation, onStoreSelect, user }) => {
     
     setSearchQuery(locationData.address);
     searchStores('', selectedCategories);
-  }, [selectedCategories, searchStores, setSearchQuery]);
+  }, [applyStoreResults, selectedCategories, searchStores, setSearchQuery]);
 
   const handleCategoryChange = useCallback((category) => {
     const newCategories = selectedCategories.includes(category)
