@@ -250,6 +250,7 @@ const EnhancedSearchInput = ({
   const inputRef = useRef(null);
   const suggestionsRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const suppressSuggestionsRef = useRef(false);
 
   const searchStores = useCallback(async (searchQuery) => {
     if (!searchQuery || searchQuery.length < 1) {
@@ -311,7 +312,11 @@ const EnhancedSearchInput = ({
       const newSuggestions = mergeSuggestions(storeSuggestions, placeSuggestions);
 
       setSuggestions(newSuggestions);
-      setShowSuggestions(newSuggestions.length > 0);
+      setShowSuggestions(
+        newSuggestions.length > 0 &&
+        !suppressSuggestionsRef.current &&
+        document.activeElement === inputRef.current
+      );
       setSelectedIndex(-1);
     } catch (error) {
       if (error.name !== 'AbortError') {
@@ -341,6 +346,7 @@ const EnhancedSearchInput = ({
 
   const handleInputChange = (e) => {
     const newValue = e.target.value;
+    suppressSuggestionsRef.current = false;
     setQuery(newValue);
     if (onChange) onChange(e);
 
@@ -353,6 +359,9 @@ const EnhancedSearchInput = ({
 
   const handleSuggestionClick = (suggestion) => {
     if (!suggestion) return;
+
+    suppressSuggestionsRef.current = true;
+    setSelectedIndex(-1);
 
     if (suggestion.type === 'allNearby') {
       setQuery(suggestion.inputValue || suggestion.name || '');
@@ -437,6 +446,7 @@ const EnhancedSearchInput = ({
   };
 
   const handleFocus = () => {
+    suppressSuggestionsRef.current = false;
     if (suggestions.length > 0) {
       setShowSuggestions(true);
     }
