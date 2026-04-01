@@ -2,10 +2,27 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { BASE_URL } from '../../config/api';
 import styles from './EnhancedSearchInput.module.css';
 
+const TORONTO_PLACE = {
+  id: 'featured-toronto',
+  type: 'place',
+  name: 'Toronto',
+  address: 'Toronto, ON, Canada',
+  lat: 43.6532,
+  lng: -79.3832,
+  icon: '📍',
+  meta: 'City in Ontario'
+};
+
 const normalizeBrandKey = (value = '') =>
   String(value)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '');
+
+const normalizeSearchValue = (value = '') =>
+  String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 
 const formatDistance = (distanceKm) =>
   Number.isFinite(distanceKm) ? `${distanceKm.toFixed(1)} km away` : null;
@@ -28,6 +45,98 @@ const getStoreIcon = (category) => {
     service: '🔧'
   };
   return iconMap[category] || '🏪';
+};
+
+const formatPlaceAddress = (addressComponents = {}, fallback = '') => {
+  const parts = [];
+  const city =
+    addressComponents.city ||
+    addressComponents.town ||
+    addressComponents.village ||
+    addressComponents.municipality ||
+    addressComponents.county;
+  const region =
+    addressComponents.state ||
+    addressComponents.province ||
+    addressComponents['ISO3166-2-lvl4'];
+  const country = addressComponents.country;
+
+  if (city) parts.push(city);
+  if (region) parts.push(String(region).replace(/^[A-Z]{2}-/, ''));
+  if (country && !['Canada', 'United States', 'United States of America'].includes(country)) {
+    parts.push(country);
+  }
+
+  return parts.join(', ') || fallback;
+};
+
+const buildPlaceSuggestions = (places = [], query = '') => {
+  const normalizedQuery = normalizeSearchValue(query).replace(/\s+/g, '');
+  const suggestions = [];
+
+  if ('toronto'.startsWith(normalizedQuery) && normalizedQuery.length > 0) {
+    suggestions.push(TORONTO_PLACE);
+  }
+
+  places.forEach(place => {
+    if (!place || place.lat == null || place.lon == null) {
+      return;
+    }
+
+    const formatted = {
+      id: `place-${place.place_id}`,
+      type: 'place',
+      name: place.name || place.address?.city || place.address?.town || place.display_name.split(',')[0],
+      address: formatPlaceAddress(place.address, place.display_name),
+      lat: parseFloat(place.lat),
+      lng: parseFloat(place.lon),
+      icon: '📍',
+      meta: place.type ? `Place • ${String(place.type).replace(/_/g, ' ')}` : 'Place'
+    };
+
+    const isDuplicateToronto =
+      normalizeSearchValue(formatted.name).replace(/\s+/g, '') === 'toronto' &&
+      suggestions.some(suggestion => suggestion.id === TORONTO_PLACE.id);
+
+    if (!isDuplicateToronto) {
+      suggestions.push(formatted);
+    }
+  });
+
+  return suggestions.slice(0, 5);
+};
+
+const mergeSuggestions = (storeSuggestions = [], placeSuggestions = []) => {
+  if (placeSuggestions.length === 0) {
+    return storeSuggestions.slice(0, 15);
+  }
+
+  if (storeSuggestions.length === 0) {
+    return placeSuggestions.slice(0, 15);
+  }
+
+  const merged = [];
+  let storeIndex = 0;
+  let placeIndex = 0;
+
+  if (storeSuggestions[0]) {
+    merged.push(storeSuggestions[0]);
+    storeIndex += 1;
+  }
+
+  while ((storeIndex < storeSuggestions.length || placeIndex < placeSuggestions.length) && merged.length < 15) {
+    if (placeIndex < placeSuggestions.length) {
+      merged.push(placeSuggestions[placeIndex]);
+      placeIndex += 1;
+    }
+
+    if (storeIndex < storeSuggestions.length && merged.length < 15) {
+      merged.push(storeSuggestions[storeIndex]);
+      storeIndex += 1;
+    }
+  }
+
+  return merged.slice(0, 15);
 };
 
 const buildSuggestions = (stores = [], hasUserLocation) => {
@@ -167,21 +276,39 @@ const EnhancedSearchInput = ({
         params.set('lng', String(userLocation.lng));
       }
 
-      const response = await fetch(
+      const storeRequest = fetch(
         `${BASE_URL}/api/search/global?${params.toString()}`,
         { signal: abortControllerRef.current.signal }
       );
 
-      if (!response.ok) {
-        throw new Error(`Search failed: ${response.status}`);
+      const placeRequest = searchQuery.length >= 2
+        ? fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1&countrycodes=ca&viewbox=-79.639,43.855,-79.115,43.585&bounded=0`,
+            { signal: abortControllerRef.current.signal }
+          )
+        : Promise.resolve(null);
+
+      const [storeResult, placeResult] = await Promise.allSettled([storeRequest, placeRequest]);
+
+      if (storeResult.status !== 'fulfilled' || !storeResult.value.ok) {
+        const status = storeResult.status === 'fulfilled' ? storeResult.value.status : 'request failed';
+        throw new Error(`Search failed: ${status}`);
       }
 
-      const data = await response.json();
-      const stores = data.stores || [];
-      const newSuggestions = buildSuggestions(
+      const storeData = await storeResult.value.json();
+      const stores = storeData.stores || [];
+      const storeSuggestions = buildSuggestions(
         stores,
         userLocation?.lat != null && userLocation?.lng != null
       );
+
+      let placeSuggestions = buildPlaceSuggestions([], searchQuery);
+      if (placeResult.status === 'fulfilled' && placeResult.value?.ok) {
+        const placeData = await placeResult.value.json();
+        placeSuggestions = buildPlaceSuggestions(placeData, searchQuery);
+      }
+
+      const newSuggestions = mergeSuggestions(storeSuggestions, placeSuggestions);
 
       setSuggestions(newSuggestions);
       setShowSuggestions(newSuggestions.length > 0);
@@ -258,6 +385,21 @@ const EnhancedSearchInput = ({
           lng: suggestion.lng || 0,
           category: suggestion.category || 'general',
           storeData: suggestion.storeData || null
+        });
+      }
+    }
+
+    if (suggestion.type === 'place') {
+      setQuery(suggestion.address || suggestion.name || '');
+      setShowSuggestions(false);
+
+      if (onLocationSelect) {
+        onLocationSelect({
+          type: 'place',
+          name: suggestion.name || '',
+          address: suggestion.address || '',
+          lat: suggestion.lat || 0,
+          lng: suggestion.lng || 0
         });
       }
     }

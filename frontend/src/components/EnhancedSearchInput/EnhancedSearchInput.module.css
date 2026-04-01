@@ -2,7 +2,8 @@
   position: relative;
   width: 100%;
   max-width: 400px;
-  z-index: 999999 !important;
+  z-index: 1400;
+  isolation: isolate;
 }
 
 .inputContainer {
@@ -59,9 +60,9 @@
   border-top: none;
   border-radius: 0 0 8px 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  max-height: 300px;
+  max-height: 360px;
   overflow-y: auto;
-  z-index: 999998 !important;
+  z-index: 1500;
 }
 
 .suggestion {
@@ -127,6 +128,16 @@
   background-color: white;
 }
 
+.suggestion.place {
+  background-color: #fffaf0;
+  border-left: 3px solid #f59e0b;
+}
+
+.suggestion.place .suggestionName {
+  color: #92400e;
+  font-weight: 600;
+}
+
 .suggestion.allNearby:hover,
 .suggestion.allNearby.selected {
   background-color: #e6f0ff;
@@ -135,6 +146,11 @@
 .suggestion.store:hover,
 .suggestion.store.selected {
   background-color: #f8f9fa;
+}
+
+.suggestion.place:hover,
+.suggestion.place.selected {
+  background-color: #fff3d6;
 }
 
 /* Responsive design */

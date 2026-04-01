@@ -16,9 +16,10 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 249, 250, 0.95) 100%);
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  z-index: 400;
+  z-index: 1200;
   padding: var(--spacing-md);
   backdrop-filter: blur(12px);
+  overflow: visible;
 }
 
 /* ===== SECTION LABELS ===== */
@@ -55,6 +56,9 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--bg-light);
+  overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 .enhancedSearch {
@@ -233,6 +237,8 @@
 .mapContent {
   height: 100%;
   padding-top: 200px; /* Reduced further since filters are now side by side */
+  position: relative;
+  z-index: 1;
 }
 
 .leafletContainer {
