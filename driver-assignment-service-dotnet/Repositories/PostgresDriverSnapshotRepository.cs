@@ -108,7 +108,8 @@ public sealed class PostgresDriverSnapshotRepository : IDriverSnapshotRepository
 
     private static string BuildConnectionString(string connectionString, string? dbSslSetting)
     {
-        var builder = new NpgsqlConnectionStringBuilder(connectionString);
+        var builder = TryBuildFromPostgresUrl(connectionString) ??
+            new NpgsqlConnectionStringBuilder(connectionString);
 
         if (string.Equals(dbSslSetting, "true", StringComparison.OrdinalIgnoreCase))
         {
@@ -139,6 +140,40 @@ public sealed class PostgresDriverSnapshotRepository : IDriverSnapshotRepository
 
         builder.SslMode = SslMode.Require;
         return builder.ConnectionString;
+    }
+
+    private static NpgsqlConnectionStringBuilder? TryBuildFromPostgresUrl(string connectionString)
+    {
+        if (!Uri.TryCreate(connectionString, UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        if (!string.Equals(uri.Scheme, "postgres", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(uri.Scheme, "postgresql", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+            Database = uri.AbsolutePath.Trim('/'),
+            Username = Uri.UnescapeDataString(uri.UserInfo.Split(':', 2)[0])
+        };
+
+        if (uri.Port > 0)
+        {
+            builder.Port = uri.Port;
+        }
+
+        var password = uri.UserInfo.Split(':', 2).Skip(1).FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(password))
+        {
+            builder.Password = Uri.UnescapeDataString(password);
+        }
+
+        return builder;
     }
 
     public async Task<int> PersistAssignmentAsync(

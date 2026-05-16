@@ -4,6 +4,13 @@ using LocalLife.DriverAssignment.Repositories;
 using LocalLife.DriverAssignment.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+var renderPort = builder.Configuration["PORT"];
+
+if (!string.IsNullOrWhiteSpace(renderPort) &&
+    string.IsNullOrWhiteSpace(builder.Configuration["ASPNETCORE_URLS"]))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
+}
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
