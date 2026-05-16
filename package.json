@@ -8,6 +8,8 @@
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:driver": "cd driver-assignment-service && npm run dev",
+    "dev:driver:dotnet": "dotnet run --project driver-assignment-service-dotnet",
+    "build:driver:dotnet": "dotnet build driver-assignment-service-dotnet",
     "build": "cd frontend && npm run build",
     "start": "cd backend && npm start",
     "test": "cd backend && npm test",

@@ -12,6 +12,8 @@ node_modules/
 build/
 dist/
 frontend/build/
+**/bin/
+**/obj/
 
 # Logs
 *.log
